@@ -1,0 +1,31 @@
+                                                                          *pint*
+pint.nvim
+
+Version: 0.1.0
+
+A small measure of UI: dashboard, notifier, statuscolumn, indent guides,
+and LSP reference words. Scoped to exactly what one config needs.
+
+------------------------------------------------------------------------------
+Plugin configuration.
+Class ~
+{pint.Config}
+Fields ~
+{dashboard} `(optional)` `(pint.dashboard.Config|false)`
+{notifier} `(optional)` `(pint.notifier.Config|false)`
+{statuscolumn} `(optional)` `(pint.statuscolumn.Config|false)`
+{indent} `(optional)` `(pint.indent.Config|false)`
+{words} `(optional)` `(pint.words.Config|false)`
+
+------------------------------------------------------------------------------
+                                                                     *M.setup()*
+                               `M.setup`({opts})
+Configure and enable the plugin's modules.
+
+Pass `false` for any module to disable it.
+
+Parameters ~
+{opts} `(optional)` `(pint.Config)` User configuration options
+
+
+ vim:tw=78:ts=8:noet:ft=help:norl:
