@@ -1,0 +1,38 @@
+name: Docs
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "lua/**"
+      - "plugin/**"
+      - "Makefile"
+      - ".github/workflows/docs.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Install Neovim
+        run: sudo apt-get update && sudo apt-get install -y neovim
+
+      - name: Fetch mini.nvim
+        run: git clone --depth 1 https://github.com/echasnovski/mini.nvim "${GITHUB_WORKSPACE}/.ci/mini.nvim"
+
+      - name: Generate docs
+        env:
+          MINI_PATH: ${{ github.workspace }}/.ci/mini.nvim
+        run: make docs
+
+      - name: Commit docs
+        uses: stefanzweifel/git-auto-commit-action@04702edda442b2e678b25b537cec683a1493fcb9 # v7
+        with:
+          commit_message: "chore(docs): regenerate vim help"

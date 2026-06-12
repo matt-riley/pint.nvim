@@ -1,0 +1,9 @@
+name: Lint
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  lint:
+    uses: matt-riley/matt-riley-ci/.github/workflows/nvim-lint.yml@c4d8a5815f151a16b406b9f31b98b1db8364241e # main
