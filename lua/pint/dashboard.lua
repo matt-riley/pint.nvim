@@ -33,7 +33,7 @@ local M = {}
 ---@class pint.dashboard.Config
 ---@field header? string|string[] ASCII-art header (string is split on newlines)
 ---@field keys? pint.dashboard.Key[]
----@field recent? {enabled?: boolean, cwd?: boolean, limit?: integer, filter?: fun(file: string): boolean}
+---@field recent? {enabled?: boolean, cwd?: boolean, limit?: integer, filter?: fun(file: string): boolean}|false Set `false` to disable the recent-files section
 ---@field sections? pint.dashboard.Section[]
 ---@field autostart? boolean Open when Neovim starts with no arguments. Default: true
 ---@field width? integer Maximum content width. Auto-detected when nil.
@@ -454,7 +454,7 @@ local function build_rows(win)
   end
 
   local sections = {}
-  if M.config.recent.enabled then
+  if type(M.config.recent) == "table" and M.config.recent.enabled then
     table.insert(sections, {
       title = "Recent files",
       icon = "󰋚 ",

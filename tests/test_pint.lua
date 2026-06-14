@@ -737,6 +737,16 @@ dashboard_set["open() with header string splits on newlines"] = function()
   MiniTest.expect.equality(found2, true, "Line2 should appear")
 end
 
+dashboard_set["open() with recent=false disables the section without erroring"] = function()
+  dashboard.setup({ autostart = false, header = {}, recent = false })
+  local ok, err = pcall(dashboard.open)
+  MiniTest.expect.equality(ok, true, err and tostring(err) or "")
+  local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+  for _, line in ipairs(lines) do
+    MiniTest.expect.equality(line:find("Recent files", 1, true), nil, "recent section should be absent")
+  end
+end
+
 T["dashboard"] = dashboard_set
 
 local indent_set = MiniTest.new_set({

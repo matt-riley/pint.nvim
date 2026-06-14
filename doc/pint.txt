@@ -79,7 +79,7 @@ Class ~
 Fields ~
 {header} `(optional)` `(string|string[])` ASCII-art header (string is split on newlines)
 {keys} `(optional)` `(pint.dashboard.Key[])`
-{recent} `(optional)` `({enabled?: boolean, cwd?: boolean, limit?: integer, filter?: fun(file: string): boolean})`
+{recent} `(optional)` `({enabled?: boolean, cwd?: boolean, limit?: integer, filter?: fun(file: string): boolean}|false)` Set `false` to disable the recent-files section
 {sections} `(optional)` `(pint.dashboard.Section[])`
 {autostart} `(optional)` `(boolean)` Open when Neovim starts with no arguments. Default: true
 {width} `(optional)` `(integer)` Maximum content width. Auto-detected when nil.
