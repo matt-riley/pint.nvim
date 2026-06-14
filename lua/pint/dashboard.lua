@@ -146,7 +146,7 @@ local function render_segs(segs, line_num, col_start, buf, ns)
     end
     col = col + #str
   end
-  return table.concat(parts, "")
+  return (" "):rep(col_start) .. table.concat(parts, "")
 end
 
 --- Find the next row that has an action, starting from `lnum` and
