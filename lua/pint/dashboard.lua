@@ -48,8 +48,19 @@ local M = {}
 ---@alias pint.dashboard.Seg string|{ [1]: string, hl?: string }
 
 ---@private
+local default_header = {
+  "██████╗ ██╗███╗   ██╗████████╗",
+  "██╔══██╗██║████╗  ██║╚══██╔══╝",
+  "██████╔╝██║██╔██╗ ██║   ██║   ",
+  "██╔═══╝ ██║██║╚██╗██║   ██║   ",
+  "██║     ██║██║ ╚████║   ██║   ",
+  "╚═╝     ╚═╝╚═╝  ╚═══╝   ╚═╝   ",
+  ".nvim",
+}
+
+---@private
 local defaults = {
-  header = "pint.nvim",
+  header = default_header,
   keys = {},
   recent = { enabled = true, cwd = true, limit = 8, filter = nil },
   sections = {},
@@ -116,29 +127,185 @@ local function run(action)
   vim.api.nvim_feedkeys(keys, "tm", true)
 end
 
+---@param text string
+---@return string[]
+---@private
+local function strchars(text)
+  local chars = {} ---@type string[]
+  local i = 0
+  while true do
+    local ch = vim.fn.strcharpart(text, i, 1)
+    if ch == "" then
+      break
+    end
+    chars[#chars + 1] = ch
+    i = i + 1
+  end
+  return chars
+end
+
+--- Truncate `text` to at most `max_w` display cells.
+---@param text string
+---@param max_w integer
+---@return string
+---@private
+local function truncate_strwidth(text, max_w)
+  if text == "" or max_w <= 0 then
+    return ""
+  end
+  if vim.api.nvim_strwidth(text) <= max_w then
+    return text
+  end
+  if max_w == 1 then
+    return "…"
+  end
+  local ellipsis = "…"
+  local limit = max_w - vim.api.nvim_strwidth(ellipsis)
+  if limit <= 0 then
+    return ellipsis
+  end
+  local out = ""
+  local width = 0
+  for _, ch in ipairs(strchars(text)) do
+    local cw = vim.api.nvim_strwidth(ch)
+    if width + cw > limit then
+      return out .. ellipsis
+    end
+    out = out .. ch
+    width = width + cw
+  end
+  return out
+end
+
+--- Keep the tail of `text` within `max_w` display cells.
+---@param text string
+---@param max_w integer
+---@return string
+---@private
+local function truncate_strwidth_tail(text, max_w)
+  if text == "" or max_w <= 0 then
+    return ""
+  end
+  if vim.api.nvim_strwidth(text) <= max_w then
+    return text
+  end
+  local chars = strchars(text)
+  local out = ""
+  local width = 0
+  for i = #chars, 1, -1 do
+    local cw = vim.api.nvim_strwidth(chars[i])
+    if width + cw > max_w then
+      break
+    end
+    out = chars[i] .. out
+    width = width + cw
+  end
+  if out == "" then
+    return truncate_strwidth(text, max_w)
+  end
+  if width < vim.api.nvim_strwidth(text) then
+    local ell = "…"
+    if vim.api.nvim_strwidth(ell) + width <= max_w then
+      out = ell .. out
+    end
+  end
+  return out
+end
+
+--- Icon and highlight for a file path (mini.icons, devicons, then fallback).
+---@param file string
+---@return string icon
+---@return string hl
+---@private
+local function file_icon(file)
+  if _G.MiniIcons ~= nil then
+    local icon, hl = _G.MiniIcons.get("file", file)
+    if icon then
+      return icon, hl or "PintDashboardIcon"
+    end
+  end
+  local ok, devicons = pcall(require, "nvim-web-devicons")
+  if ok then
+    local name = vim.fn.fnamemodify(file, ":t")
+    local ext = vim.fn.fnamemodify(file, ":e")
+    local icon, hl = devicons.get_icon(name, ext, { default = true })
+    if icon then
+      return icon, hl or "PintDashboardIcon"
+    end
+  end
+  local ft = vim.filetype.match({ filename = file })
+  if ft and ft ~= "" and _G.MiniIcons ~= nil then
+    local icon, hl = _G.MiniIcons.get("filetype", ft)
+    if icon then
+      return icon, hl or "PintDashboardIcon"
+    end
+  end
+  return "󰈔", "PintDashboardIcon"
+end
+
+--- Available display width for a recent-file path segment.
+---@param win integer
+---@param max_width integer
+---@param indent integer
+---@return integer
+---@private
+local function recent_path_budget(win, max_width, indent)
+  local win_w = math.max(vim.api.nvim_win_get_width(win) - 2, 1)
+  local budget = math.min(max_width, win_w)
+  local overhead = indent + 3 + 5
+  return math.max(budget - overhead, 12)
+end
+
 --- Split a file path into {dir/, filename} segments.
---- Long paths are shortened with pathshorten then manual truncation.
+--- Long paths are shortened with pathshorten then display-width truncation.
 ---@param file string
 ---@param max_width integer
 ---@return pint.dashboard.Seg[]
 ---@private
-local function format_path(file, max_width)
-  local fname = vim.fn.fnamemodify(file, ":~")
-  if max_width and #fname > max_width then
+local function format_path(file, max_width, relative)
+  if not max_width or max_width <= 0 then
+    max_width = 20
+  end
+  local fname = relative and vim.fn.fnamemodify(file, ":.:") or vim.fn.fnamemodify(file, ":~")
+  if vim.api.nvim_strwidth(fname) > max_width then
     fname = vim.fn.pathshorten(fname)
   end
-  if max_width and #fname > max_width then
+  if vim.api.nvim_strwidth(fname) <= max_width then
     local dir, name = vim.fs.dirname(fname), vim.fs.basename(fname)
-    if dir ~= name and #dir > 0 then
-      name = name:sub(-(max_width - #dir - 2))
-      fname = dir .. "/…" .. name
+    if dir ~= name then
+      return { { dir .. "/", hl = "PintDashboardDir" }, { name, hl = "PintDashboardFile" } }
     end
+    return { { fname, hl = "PintDashboardFile" } }
   end
+
   local dir, name = vim.fs.dirname(fname), vim.fs.basename(fname)
-  if dir ~= name then
-    return { { dir .. "/", hl = "PintDashboardDir" }, { name, hl = "PintDashboardFile" } }
+  local name_w = vim.api.nvim_strwidth(name)
+  local middle = "/…/"
+  local middle_w = vim.api.nvim_strwidth(middle)
+  if dir == name or name_w + middle_w >= max_width then
+    return { { truncate_strwidth(name, max_width), hl = "PintDashboardFile" } }
   end
-  return { { fname, hl = "PintDashboardFile" } }
+  local dir_budget = max_width - name_w - middle_w
+  local short_dir = truncate_strwidth_tail(dir, dir_budget)
+  return {
+    { short_dir .. middle, hl = "PintDashboardDir" },
+    { name, hl = "PintDashboardFile" },
+  }
+end
+
+--- Build recent-file row segments with icon and truncated path.
+---@param file string
+---@param path_budget integer
+---@return pint.dashboard.Seg[]
+---@private
+local function recent_file_segments(file, path_budget, relative)
+  local icon, icon_hl = file_icon(file)
+  local segs = {
+    { icon, hl = icon_hl },
+    { " ", hl = nil },
+  }
+  vim.list_extend(segs, format_path(file, path_budget, relative))
+  return segs
 end
 
 --- Sum the strwidth of an array of segments.
@@ -149,6 +316,48 @@ local function segs_width(segs)
   return vim.iter(segs):fold(0, function(w, s)
     return w + vim.api.nvim_strwidth(s[1])
   end)
+end
+
+--- Right-align a `[key]` suffix inside a fixed content width.
+---@param segs pint.dashboard.Seg[]
+---@param key string
+---@param total_width integer
+---@private
+local function append_aligned_key(segs, key, total_width)
+  local label = "[" .. key .. "]"
+  local gap = total_width - segs_width(segs) - vim.api.nvim_strwidth(label)
+  if gap < 1 then
+    gap = 1
+  end
+  table.insert(segs, { string.rep(" ", gap) })
+  table.insert(segs, { label, hl = "PintDashboardKey" })
+end
+
+--- Insert aligned key suffixes for all keyed rows.
+---@param rows pint.dashboard.Row[]
+---@private
+local function align_row_keys(rows)
+  local keyed_width = vim.iter(rows):fold(0, function(w, row)
+    if row.key and type(row.text) == "table" then
+      return math.max(w, segs_width(row.text))
+    end
+    return w
+  end)
+  if keyed_width == 0 then
+    return
+  end
+  local max_key_w = vim.iter(rows):fold(0, function(w, row)
+    if row.key then
+      return math.max(w, vim.api.nvim_strwidth("[" .. row.key .. "]"))
+    end
+    return w
+  end)
+  local total_width = keyed_width + 1 + max_key_w
+  for _, row in ipairs(rows) do
+    if row.key and type(row.text) == "table" then
+      append_aligned_key(row.text, row.key, total_width)
+    end
+  end
 end
 
 --- Build the line string and collect extmark positions for segments.
@@ -195,9 +404,12 @@ end
 ---@field text string|pint.dashboard.Seg[]
 ---@field action? string|fun()
 ---@field key? string
+---@field align? "center"
+---@field footer? boolean
 
 ---@private
----@return pint.dashboard.Row[]
+---@return pint.dashboard.Row[] body
+---@return pint.dashboard.Row[] footer
 local function build_rows(win)
   local max_width = M.config.width or (vim.api.nvim_win_get_width(win) - 2)
   local autokeys = M.config.autokeys:gsub("[hjklq]", "") ---@type string
@@ -212,8 +424,9 @@ local function build_rows(win)
   local header_lines = type(M.config.header) == "string" and vim.split(M.config.header, "\n", { plain = true })
     or M.config.header
   for _, line in ipairs(header_lines) do
-    table.insert(rows, { text = { { line, hl = "PintDashboardHeader" } } })
+    table.insert(rows, { text = { { line, hl = "PintDashboardHeader" } }, align = "center" })
   end
+  blank()
   blank()
 
   for _, k in ipairs(M.config.keys) do
@@ -225,9 +438,8 @@ local function build_rows(win)
       if not k.hidden then
         table.insert(rows, {
           text = {
-            { k.icon or "•", hl = "PintDashboardIcon" },
-            { " " .. k.desc, hl = "PintDashboardDesc" },
-            { "  [" .. k.key .. "]", hl = "PintDashboardKey" },
+            { k.icon or "󰌑", hl = "PintDashboardIcon" },
+            { "  " .. k.desc, hl = "PintDashboardDesc" },
           },
           action = k.action,
           key = k.key,
@@ -245,13 +457,14 @@ local function build_rows(win)
   if M.config.recent.enabled then
     table.insert(sections, {
       title = "Recent files",
-      icon = "",
+      icon = "󰋚 ",
       items = function()
         local items = {}
+        local path_budget = recent_path_budget(win, max_width, 2)
+        local relative = M.config.recent.cwd
         for _, file in ipairs(recent_files()) do
-          local path_segs = format_path(file, max_width - 6)
           items[#items + 1] = {
-            label = path_segs,
+            label = recent_file_segments(file, path_budget, relative),
             action = function()
               vim.cmd.edit(vim.fn.fnameescape(file))
             end,
@@ -273,17 +486,24 @@ local function build_rows(win)
       local items = section.items()
       if #items > 0 then
         local pad_top, pad_bottom = section_padding(section.padding)
+        if pad_top == 0 and section.padding == nil then
+          pad_top = 1
+        end
         for _ = 1, pad_top do
           blank()
         end
 
         table.insert(rows, {
           text = {
-            { (section.icon or "") .. section.title, hl = "PintDashboardTitle" },
+            { section.icon or "󰉋 ", hl = "PintDashboardIcon" },
+            { section.title, hl = "PintDashboardTitle" },
           },
         })
+        table.insert(rows, {
+          text = { { string.rep("─", 24), hl = "PintDashboardRule" } },
+        })
 
-        local indent = (" "):rep(section.indent or 0)
+        local indent = (" "):rep(section.indent ~= nil and section.indent or 2)
         for itemidx, item in ipairs(items) do
           local akey = nil
           while autokey_idx <= #autokeys and used_keys[autokeys:sub(autokey_idx, autokey_idx)] do
@@ -308,10 +528,6 @@ local function build_rows(win)
               end
             end
           end
-          if akey then
-            table.insert(item_text, { "  [" .. akey .. "]", hl = "PintDashboardKey" })
-          end
-
           table.insert(rows, {
             text = item_text,
             action = item.action,
@@ -333,28 +549,39 @@ local function build_rows(win)
     end
   end
 
+  align_row_keys(rows)
+
+  local footer = {} ---@type pint.dashboard.Row[]
   local ok, lazy = pcall(require, "lazy")
   if ok then
     local stats = lazy.stats()
-    blank()
-    table.insert(rows, {
+    table.insert(footer, {
+      footer = true,
+      align = "center",
       text = {
-        { "⚡ Neovim loaded ", hl = "PintDashboardFooter" },
+        { "󱐋 ", hl = "PintDashboardFooter" },
         { stats.loaded .. "/" .. stats.count, hl = "PintDashboardSpecial" },
-        { " plugins in ", hl = "PintDashboardFooter" },
+        { " plugins loaded in ", hl = "PintDashboardFooter" },
         { ("%.0fms"):format(stats.startuptime), hl = "PintDashboardSpecial" },
       },
     })
   end
 
-  return rows
+  return rows, footer
 end
 
 ---@private
----@return integer pad_left, integer pad_top
-local function paint_dashboard(buf, win, rows)
+---@param body pint.dashboard.Row[]
+---@param footer pint.dashboard.Row[]
+---@return integer pad_left
+---@return integer pad_top
+---@return integer footer_start
+local function paint_dashboard(buf, win, body, footer)
   local max_width = M.config.width or (vim.api.nvim_win_get_width(win) - 2)
-  local content_width = vim.iter(rows):fold(0, function(w, row)
+  local content_width = vim.iter(body):fold(0, function(w, row)
+    if row.align == "center" then
+      return w
+    end
     local rw = type(row.text) == "string" and vim.api.nvim_strwidth(row.text) or segs_width(row.text)
     return math.max(w, rw)
   end)
@@ -363,40 +590,57 @@ local function paint_dashboard(buf, win, rows)
   local win_width = vim.api.nvim_win_get_width(win)
   local win_height = vim.api.nvim_win_get_height(win)
   local pad_left = math.max(math.floor((win_width - content_width) / 2), 0)
-  local pad_top = math.max(math.floor((win_height - #rows) / 2), 0)
+  local footer_gap = #footer > 0 and 1 or 0
+  local pad_top = math.max(math.floor((win_height - footer_gap - #footer - #body) / 2), 1)
+  local footer_start = win_height - #footer
 
   vim.bo[buf].modifiable = true
-  local lines = {}
-  for _ = 1, pad_top do
-    table.insert(lines, "")
+  local lines = {} ---@type string[]
+  for _ = 1, win_height do
+    lines[#lines + 1] = ""
   end
-  for _, row in ipairs(rows) do
-    if type(row.text) == "string" then
-      table.insert(lines, row.text == "" and "" or ((" "):rep(pad_left) .. row.text))
-    else
-      table.insert(lines, "")
-    end
-  end
-  vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+  local pending_marks = {} ---@type {lnum:integer, col:integer, hl:string, end_col:integer}[]
 
-  vim.api.nvim_buf_clear_namespace(buf, NS, 0, -1)
-  for i, row in ipairs(rows) do
-    local lnum = pad_top + i - 1
-    if type(row.text) ~= "string" then
-      local rendered, marks = build_segs_line(row.text, pad_left)
-      vim.api.nvim_buf_set_lines(buf, lnum, lnum + 1, false, { rendered })
-      for _, m in ipairs(marks) do
-        vim.api.nvim_buf_set_extmark(buf, NS, lnum, m.col, {
-          hl_group = m.hl,
-          end_col = m.end_col,
-          priority = 1,
-        })
-      end
+  local function row_pad_left(row)
+    if row.align == "center" then
+      local rw = type(row.text) == "string" and vim.api.nvim_strwidth(row.text) or segs_width(row.text)
+      return math.max(math.floor((win_width - rw) / 2), 0)
     end
+    return pad_left
+  end
+
+  local function paint_row(row, lnum)
+    if type(row.text) == "string" then
+      lines[lnum + 1] = row.text == "" and "" or ((" "):rep(row_pad_left(row)) .. row.text)
+      return
+    end
+    local left = row_pad_left(row)
+    local rendered, marks = build_segs_line(row.text, left)
+    lines[lnum + 1] = rendered
+    for _, m in ipairs(marks) do
+      pending_marks[#pending_marks + 1] = { lnum = lnum, col = m.col, hl = m.hl, end_col = m.end_col }
+    end
+  end
+
+  for i, row in ipairs(body) do
+    paint_row(row, pad_top + i - 1)
+  end
+  for i, row in ipairs(footer) do
+    paint_row(row, footer_start + i - 1)
+  end
+
+  vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+  vim.api.nvim_buf_clear_namespace(buf, NS, 0, -1)
+  for _, m in ipairs(pending_marks) do
+    vim.api.nvim_buf_set_extmark(buf, NS, m.lnum, m.col, {
+      hl_group = m.hl,
+      end_col = m.end_col,
+      priority = 1,
+    })
   end
   vim.bo[buf].modifiable = false
 
-  return pad_left, pad_top
+  return pad_left, pad_top, footer_start
 end
 
 --- Open the dashboard in the current window.
@@ -418,7 +662,8 @@ function M.open()
   local wo = vim.wo[win]
   wo.number = false
   wo.relativenumber = false
-  wo.cursorline = false
+  wo.cursorline = true
+  wo.cursorlineopt = "line"
   wo.cursorcolumn = false
   wo.signcolumn = "no"
   wo.foldcolumn = "0"
@@ -436,7 +681,7 @@ function M.open()
   pcall(
     vim.api.nvim_set_option_value,
     "winhighlight",
-    "Normal:PintDashboardNormal,NormalFloat:PintDashboardNormal",
+    "Normal:PintDashboardNormal,NormalFloat:PintDashboardNormal,CursorLine:PintDashboardCursorLine",
     { win = win }
   )
 
@@ -481,11 +726,11 @@ function M.open()
     end,
   })
 
-  ---@type {rows: pint.dashboard.Row[], pad_left: integer, pad_top: integer}
-  local ctx = { rows = build_rows(win), pad_left = 0, pad_top = 0 }
+  ---@type {body: pint.dashboard.Row[], footer: pint.dashboard.Row[], pad_left: integer, pad_top: integer, footer_start: integer}
+  local ctx = { body = {}, footer = {}, pad_left = 0, pad_top = 0, footer_start = 0 }
 
   local function bind_row_keys()
-    for _, row in ipairs(ctx.rows) do
+    for _, row in ipairs(ctx.body) do
       if row.key then
         vim.keymap.set("n", row.key, function()
           run(row.action)
@@ -496,18 +741,19 @@ function M.open()
 
   local function refresh()
     local cursor = vim.api.nvim_win_get_cursor(win)
-    ctx.rows = build_rows(win)
-    ctx.pad_left, ctx.pad_top = paint_dashboard(buf, win, ctx.rows)
+    ctx.body, ctx.footer = build_rows(win)
+    ctx.pad_left, ctx.pad_top, ctx.footer_start = paint_dashboard(buf, win, ctx.body, ctx.footer)
     bind_row_keys()
-    local row_idx = math.min(cursor[1], vim.api.nvim_buf_line_count(buf))
+    local row_idx = math.min(cursor[1], ctx.footer_start - 1)
     vim.api.nvim_win_set_cursor(win, { row_idx, ctx.pad_left })
   end
 
-  ctx.pad_left, ctx.pad_top = paint_dashboard(buf, win, ctx.rows)
+  ctx.body, ctx.footer = build_rows(win)
+  ctx.pad_left, ctx.pad_top, ctx.footer_start = paint_dashboard(buf, win, ctx.body, ctx.footer)
 
   -- Keymaps and action tracking
   local action_rows = vim
-    .iter(ipairs(ctx.rows))
+    .iter(ipairs(ctx.body))
     :filter(function(_, row)
       return row.action ~= nil
     end)
@@ -527,7 +773,7 @@ function M.open()
   -- <CR> activates the row under the cursor
   vim.keymap.set("n", "<cr>", function()
     local lnum = vim.api.nvim_win_get_cursor(win)[1] - ctx.pad_top
-    local row = ctx.rows[lnum]
+    local row = ctx.body[lnum]
     if row and row.action then
       restore_chrome()
       run(row.action)
@@ -545,9 +791,16 @@ function M.open()
     group = augroup,
     callback = function()
       local lnum = vim.api.nvim_win_get_cursor(win)[1] - ctx.pad_top
-      local row = ctx.rows[lnum]
+      if lnum > #ctx.body then
+        local target = nearest_action(ctx.body, #ctx.body, -1)
+        if target then
+          vim.api.nvim_win_set_cursor(win, { ctx.pad_top + target, ctx.pad_left })
+        end
+        return
+      end
+      local row = ctx.body[lnum]
       if not row or not row.action then
-        local target = nearest_action(ctx.rows, lnum, 1) or nearest_action(ctx.rows, lnum, -1)
+        local target = nearest_action(ctx.body, lnum, 1) or nearest_action(ctx.body, lnum, -1)
         if target then
           vim.api.nvim_win_set_cursor(win, { ctx.pad_top + target, ctx.pad_left })
         end
@@ -576,15 +829,17 @@ function M.setup(opts)
   -- Highlight groups — all default=true so users can override them.
   local hls = {
     PintDashboardNormal = { link = "Normal", default = true },
+    PintDashboardCursorLine = { link = "CursorLine", default = true },
     PintDashboardHeader = { link = "Title", default = true },
-    PintDashboardTitle = { link = "Title", default = true },
+    PintDashboardTitle = { link = "Function", default = true },
+    PintDashboardRule = { link = "NonText", default = true },
     PintDashboardIcon = { link = "Special", default = true },
     PintDashboardDesc = { link = "Normal", default = true },
-    PintDashboardKey = { link = "Number", default = true },
-    PintDashboardItem = { link = "Comment", default = true },
+    PintDashboardKey = { link = "Label", default = true },
+    PintDashboardItem = { link = "Directory", default = true },
     PintDashboardDir = { link = "NonText", default = true },
     PintDashboardFile = { link = "Special", default = true },
-    PintDashboardFooter = { link = "NonText", default = true },
+    PintDashboardFooter = { link = "Comment", default = true },
     PintDashboardSpecial = { link = "Special", default = true },
   }
   for name, hl in pairs(hls) do

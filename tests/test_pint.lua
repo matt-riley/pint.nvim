@@ -107,7 +107,7 @@ dashboard_set["open() renders header and recent files section"] = function()
     if line:find("TEST HEADER", 1, true) then
       has_header = true
     end
-    if line:find(vim.fn.fnamemodify(vim.v.oldfiles[1], ":~"):gsub("%/", "/"), 1, true) then
+    if line:find(vim.fn.fnamemodify(vim.v.oldfiles[1], ":t"), 1, true) then
       has_filename = true
     end
   end
@@ -470,11 +470,147 @@ dashboard_set["open() sets correct window options"] = function()
   dashboard.open()
   MiniTest.expect.equality(vim.wo.number, false)
   MiniTest.expect.equality(vim.wo.relativenumber, false)
-  MiniTest.expect.equality(vim.wo.cursorline, false)
+  MiniTest.expect.equality(vim.wo.cursorline, true)
   MiniTest.expect.equality(vim.wo.signcolumn, "no")
   MiniTest.expect.equality(vim.wo.spell, false)
   MiniTest.expect.equality(vim.wo.wrap, false)
   MiniTest.expect.equality(vim.wo.list, false)
+end
+
+dashboard_set["open() truncates long recent file paths"] = function()
+  local dir = vim.fn.tempname()
+  vim.fn.mkdir(dir, "p")
+  local nested = dir
+    .. "/projects/personal/pint.nvim/lua/pint/extra/deep/nested/directories/and/more/"
+    .. string.rep("segment-", 6)
+    .. "file.lua"
+  vim.fn.mkdir(vim.fn.fnamemodify(nested, ":h"), "p")
+  vim.fn.writefile({ "x" }, nested)
+  vim.v.oldfiles = { nested }
+  vim.o.columns = 72
+  dashboard.setup({
+    autostart = false,
+    header = {},
+    keys = {
+      { desc = "Find File", key = "f", action = ":echo f" },
+    },
+    recent = { enabled = true, cwd = false, limit = 1 },
+    width = 48,
+  })
+  dashboard.open()
+  local win_w = vim.api.nvim_win_get_width(0)
+  local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+  local found = false
+  for _, line in ipairs(lines) do
+    if line:find("file%.lua", 1, true) or line:find("…", 1, true) then
+      found = true
+      MiniTest.expect.equality(
+        vim.api.nvim_strwidth(line) <= win_w,
+        true,
+        ("recent path should fit window, got %d > %d: %q"):format(vim.api.nvim_strwidth(line), win_w, line)
+      )
+    end
+  end
+  MiniTest.expect.equality(found, true, "recent file row should render")
+  vim.fn.delete(nested)
+  vim.fn.delete(dir, "rf")
+end
+
+dashboard_set["open() recent files use cwd-relative paths when cwd=true"] = function()
+  local file = vim.fn.getcwd() .. "/lua/pint/dashboard.lua"
+  vim.fn.mkdir(vim.fn.fnamemodify(file, ":h"), "p")
+  vim.fn.writefile({ "x" }, file)
+  vim.v.oldfiles = { file }
+  dashboard.setup({
+    autostart = false,
+    header = {},
+    recent = { enabled = true, cwd = true, limit = 1 },
+  })
+  dashboard.open()
+  local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+  local found_relative = false
+  local found_home = false
+  for _, line in ipairs(lines) do
+    if line:find("lua/pint/dashboard.lua", 1, true) then
+      found_relative = true
+    end
+    if line:find(vim.fn.expand("~"), 1, true) then
+      found_home = true
+    end
+  end
+  MiniTest.expect.equality(found_relative, true, "recent file should use cwd-relative path")
+  MiniTest.expect.equality(found_home, false, "recent file should not show home directory prefix")
+  vim.fn.delete(file)
+end
+
+dashboard_set["open() uses consistent gap between sections"] = function()
+  dashboard.setup({
+    autostart = false,
+    header = {},
+    keys = {
+      { desc = "Action", key = "a", action = ":echo a" },
+    },
+    recent = { enabled = true, cwd = false, limit = 1 },
+    sections = {
+      {
+        title = "Sessions",
+        items = function()
+          return { { label = "Session One", action = ":echo s" } }
+        end,
+      },
+    },
+  })
+  local file = vim.fn.tempname()
+  vim.fn.writefile({ "x" }, file)
+  vim.v.oldfiles = { file }
+  dashboard.open()
+  local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+  local action_idx, recent_idx, recent_item_idx, sessions_idx = nil, nil, nil, nil
+  for i, line in ipairs(lines) do
+    if line:find("Action", 1, true) then
+      action_idx = i
+    end
+    if line:find("Recent files", 1, true) then
+      recent_idx = i
+    end
+    if line:find(vim.fn.fnamemodify(file, ":t"), 1, true) then
+      recent_item_idx = i
+    end
+    if line:find("Sessions", 1, true) then
+      sessions_idx = i
+    end
+  end
+  MiniTest.expect.equality(action_idx ~= nil, true)
+  MiniTest.expect.equality(recent_idx ~= nil, true)
+  MiniTest.expect.equality(recent_item_idx ~= nil, true)
+  MiniTest.expect.equality(sessions_idx ~= nil, true)
+  local gap_menu_recent = recent_idx - action_idx - 1
+  local gap_recent_sessions = sessions_idx - recent_item_idx - 1
+  MiniTest.expect.equality(gap_menu_recent, 1, "menu to recent gap")
+  MiniTest.expect.equality(gap_recent_sessions, 1, "recent to sessions gap")
+  vim.fn.delete(file)
+end
+
+dashboard_set["open() recent files include a file icon"] = function()
+  local file = vim.fn.tempname() .. ".lua"
+  vim.fn.writefile({ "x" }, file)
+  vim.v.oldfiles = { file }
+  dashboard.setup({
+    autostart = false,
+    header = {},
+    recent = { enabled = true, cwd = false, limit = 1 },
+  })
+  dashboard.open()
+  local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+  local found = false
+  for _, line in ipairs(lines) do
+    if line:find(vim.fn.fnamemodify(file, ":t"), 1, true) then
+      found = true
+      MiniTest.expect.equality(vim.api.nvim_strwidth(line) > #vim.fn.fnamemodify(file, ":t"), true)
+    end
+  end
+  MiniTest.expect.equality(found, true, "recent file row should include icon and filename")
+  vim.fn.delete(file)
 end
 
 dashboard_set["open() with custom width constrains content"] = function()

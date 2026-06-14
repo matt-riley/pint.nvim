@@ -4,5 +4,6 @@ vim.bo.buflisted = false
 vim.bo.modifiable = false
 vim.wo.number = false
 vim.wo.relativenumber = false
+vim.wo.cursorline = true
 vim.wo.signcolumn = "no"
 vim.wo.wrap = false
