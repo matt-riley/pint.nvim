@@ -5,6 +5,7 @@ local M = {}
 --- Notifier configuration.
 ---@class pint.notifier.Config
 ---@field timeout? integer Milliseconds before a notification hides. Default: 2000
+---@field history_limit? integer Maximum stored notifications. Default: 200
 ---@field margin? {top: integer, right: integer, bottom: integer}
 ---@field border? string Window border. Default: vim.o.winborder or "rounded"
 ---@field top_down? boolean Stack new notifications at the top. Default: false
@@ -12,6 +13,7 @@ local M = {}
 ---@private
 local defaults = {
   timeout = 2000,
+  history_limit = 200,
   margin = { top = 0, right = 1, bottom = 1 },
   border = nil,
   top_down = false,
@@ -36,6 +38,8 @@ local active = {}
 ---@type pint.notifier.Item[]
 local history = {}
 local next_id = 0
+local previous_notify
+local notify_wrapper
 
 local level_meta = {
   [vim.log.levels.TRACE] = { hl = "DiagnosticHint", icon = "T", name = "Trace" },
@@ -184,6 +188,12 @@ function M.notify(msg, level, opts)
   item.icon = opts.icon
   item.time = os.time()
   table.insert(history, { msg = msg, level = level, title = opts.title, time = item.time })
+  local limit = M.config.history_limit
+  if limit and limit > 0 then
+    while #history > limit do
+      table.remove(history, 1)
+    end
+  end
 
   render(item)
   layout()
@@ -242,13 +252,34 @@ function M.show_history()
   end
 end
 
+--- Restore the original `vim.notify` and clear notifications.
+---@tag pint.notifier.teardown
+function M.teardown()
+  for _, item in ipairs(active) do
+    close_item(item)
+  end
+  active = {}
+  history = {}
+  next_id = 0
+  if notify_wrapper and vim.notify == notify_wrapper and previous_notify then
+    vim.notify = previous_notify
+  end
+  notify_wrapper = nil
+  previous_notify = nil
+  pcall(vim.api.nvim_del_augroup_by_name, "PintNotifier")
+end
+
 --- Install pint as the vim.notify handler.
+---@tag pint.notifier.setup
 ---@param opts? pint.notifier.Config
 function M.setup(opts)
+  M.teardown()
   M.config = vim.tbl_deep_extend("force", vim.deepcopy(defaults), opts or {})
-  vim.notify = function(msg, level, o)
+  previous_notify = vim.notify
+  notify_wrapper = function(msg, level, o)
     M.notify(msg, level, o)
   end
+  vim.notify = notify_wrapper
   vim.api.nvim_create_autocmd("VimResized", {
     group = vim.api.nvim_create_augroup("PintNotifier", { clear = true }),
     callback = layout,

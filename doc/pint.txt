@@ -28,4 +28,226 @@ Parameters ~
 {opts} `(optional)` `(pint.Config)` User configuration options
 
 
+==============================================================================
+------------------------------------------------------------------------------
+Class ~
+{pint.dashboard.Key}
+Fields ~
+{icon} `(optional)` `(string)`
+{key} `(string)` Single key that triggers the action
+{desc} `(string)`
+{action} `(string|fun())` Keys (starting with "<" or ":") or a function
+
+------------------------------------------------------------------------------
+Class ~
+{pint.dashboard.Item}
+Fields ~
+{label} `(string)`
+{action} `(string|fun())`
+
+------------------------------------------------------------------------------
+Class ~
+{pint.dashboard.Section}
+Fields ~
+{title} `(string)`
+{icon} `(optional)` `(string)`
+{items} `(fun(): pint.dashboard.Item[])`
+
+------------------------------------------------------------------------------
+Dashboard configuration.
+Class ~
+{pint.dashboard.Config}
+Fields ~
+{header} `(optional)` `(string[])` ASCII-art header lines
+{keys} `(optional)` `(pint.dashboard.Key[])`
+{recent} `(optional)` `({enabled?: boolean, cwd?: boolean, limit?: integer, filter?: fun(file: string): boolean})`
+{sections} `(optional)` `(pint.dashboard.Section[])`
+{autostart} `(optional)` `(boolean)` Open when Neovim starts with no arguments. Default: true
+
+------------------------------------------------------------------------------
+                                                       *pint.dashboard.teardown*
+                                 `M.teardown`()
+Disable dashboard autostart and clear its augroup.
+
+------------------------------------------------------------------------------
+                                                                      *M.open()*
+                                   `M.open`()
+Open the dashboard in the current window.
+
+------------------------------------------------------------------------------
+                                                          *pint.dashboard.setup*
+                               `M.setup`({opts})
+Configure the dashboard and open it on argument-less startup.
+Parameters ~
+{opts} `(optional)` `(pint.dashboard.Config)`
+
+
+==============================================================================
+------------------------------------------------------------------------------
+Notifier configuration.
+Class ~
+{pint.notifier.Config}
+Fields ~
+{timeout} `(optional)` `(integer)` Milliseconds before a notification hides. Default: 2000
+{history_limit} `(optional)` `(integer)` Maximum stored notifications. Default: 200
+{margin} `(optional)` `({top: integer, right: integer, bottom: integer})`
+{border} `(optional)` `(string)` Window border. Default: vim.o.winborder or "rounded"
+{top_down} `(optional)` `(boolean)` Stack new notifications at the top. Default: false
+
+------------------------------------------------------------------------------
+                                                                        *active*
+                                    `active`
+Type ~
+`(pint.notifier.Item[])` active notifications, in display order
+
+------------------------------------------------------------------------------
+                                                                       *history*
+                                   `history`
+Type ~
+`(pint.notifier.Item[])`
+
+------------------------------------------------------------------------------
+                                                                    *M.notify()*
+                       `M.notify`({msg}, {level}, {opts})
+Show a notification. Signature matches |vim.notify()|.
+Parameters ~
+{msg} `(string)`
+{level} `(optional)` `(integer)`
+{opts} `(optional)` `({title?: string, icon?: string, id?: string|integer, timeout?: integer})`
+
+------------------------------------------------------------------------------
+                                                              *M.show_history()*
+                               `M.show_history`()
+Show notification history in a floating window.
+
+------------------------------------------------------------------------------
+                                                        *pint.notifier.teardown*
+                                 `M.teardown`()
+Restore the original `vim.notify` and clear notifications.
+
+------------------------------------------------------------------------------
+                                                           *pint.notifier.setup*
+                               `M.setup`({opts})
+Install pint as the vim.notify handler.
+Parameters ~
+{opts} `(optional)` `(pint.notifier.Config)`
+
+
+==============================================================================
+------------------------------------------------------------------------------
+Statuscolumn configuration.
+Class ~
+{pint.statuscolumn.Config}
+Fields ~
+{folds} `(optional)` `({open: boolean, git_hl: boolean})` Show open-fold markers; reuse git sign hl for fold icons
+{git_patterns} `(optional)` `(string[])` Sign/extmark name patterns treated as git signs
+
+------------------------------------------------------------------------------
+                                                                       *M.get()*
+                                   `M.get`()
+Render the statuscolumn for the current window. Use via:
+`vim.o.statuscolumn = "%!v:lua.require'pint.statuscolumn'.get()"`
+Return ~
+`(string)`
+
+------------------------------------------------------------------------------
+                                                       *pint.statuscolumn.setup*
+                               `M.setup`({opts})
+Set 'statuscolumn' globally and keep the sign cache fresh.
+Parameters ~
+{opts} `(optional)` `(pint.statuscolumn.Config)`
+
+------------------------------------------------------------------------------
+                                                    *pint.statuscolumn.teardown*
+                                 `M.teardown`()
+Restore the previous statuscolumn and clear cached sign state.
+
+
+==============================================================================
+------------------------------------------------------------------------------
+Indent configuration.
+Class ~
+{pint.indent.Config}
+Fields ~
+{char} `(optional)` `(string)` Guide character. Default: "│"
+{hl} `(optional)` `(string)` Guide highlight group. Default: "PintIndent"
+{scope_hl} `(optional)` `(string)` Current-scope guide highlight. Default: "PintIndentScope"
+{scope} `(optional)` `(boolean)` Highlight the current scope's guide. Default: true
+{textobject} `(optional)` `(boolean)` Map ii/ai and [i/]i. Default: true
+{exclude_filetypes} `(optional)` `(string[])` Filetypes to skip
+
+------------------------------------------------------------------------------
+                                                        *pint.indent-textobject*
+                            `M.textobject`({outer})
+Select or operate on the current indent scope.
+Parameters ~
+{outer} `(boolean)` Include the line above (and trailing line for `ai`)
+
+------------------------------------------------------------------------------
+                                                              *pint.indent-jump*
+                               `M.jump`({bottom})
+Jump to the top or bottom edge of the current indent scope.
+Parameters ~
+{bottom} `(boolean)` Jump to the bottom edge instead of the top
+
+------------------------------------------------------------------------------
+                                                             *pint.indent.setup*
+                               `M.setup`({opts})
+Enable indent guides.
+Parameters ~
+{opts} `(optional)` `(pint.indent.Config)`
+
+------------------------------------------------------------------------------
+                                                          *pint.indent.teardown*
+                                 `M.teardown`()
+Disable indent guides and remove installed textobject mappings.
+
+
+==============================================================================
+------------------------------------------------------------------------------
+Words configuration.
+Class ~
+{pint.words.Config}
+Fields ~
+{debounce} `(optional)` `(integer)` Milliseconds of cursor rest before highlighting. Default: 200
+{enabled} `(optional)` `(boolean)` Start enabled. Default: true
+
+------------------------------------------------------------------------------
+                                                                *M.is_enabled()*
+                                `M.is_enabled`()
+Is the words module currently enabled?
+Return ~
+`(boolean)`
+
+------------------------------------------------------------------------------
+                                                                    *M.enable()*
+                                  `M.enable`()
+Enable reference highlighting.
+
+------------------------------------------------------------------------------
+                                                                   *M.disable()*
+                                 `M.disable`()
+Disable reference highlighting and clear existing highlights.
+
+------------------------------------------------------------------------------
+                                                               *pint.words-jump*
+                           `M.jump`({count}, {cycle})
+Jump to a reference of the symbol under the cursor.
+Parameters ~
+{count} `(integer)` 1 for next, -1 for previous
+{cycle} `(optional)` `(boolean)` Wrap around at the ends. Default: true
+
+------------------------------------------------------------------------------
+                                                              *pint.words.setup*
+                               `M.setup`({opts})
+Set up autocmds for automatic reference highlighting.
+Parameters ~
+{opts} `(optional)` `(pint.words.Config)`
+
+------------------------------------------------------------------------------
+                                                           *pint.words.teardown*
+                                 `M.teardown`()
+Disable automatic highlighting and clear tracked references.
+
+
  vim:tw=78:ts=8:noet:ft=help:norl:

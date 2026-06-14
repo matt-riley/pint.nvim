@@ -48,6 +48,7 @@ require("pint").setup({
   },
   notifier = {
     timeout = 2000,
+    history_limit = 200,
     top_down = false,
   },
   statuscolumn = {}, -- sets vim.o.statuscolumn

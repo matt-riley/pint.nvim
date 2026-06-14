@@ -25,21 +25,25 @@ local defaults = {
 M.config = vim.deepcopy(defaults)
 
 local ns = vim.api.nvim_create_namespace("pint.indent")
+local enabled = false
+local installed_maps = {}
 
 ---@private
 ---Effective indent of a line, looking through blanks to the next non-blank.
 ---@return integer
-local function line_indent(buf, lnum, last)
-  local line = vim.api.nvim_buf_get_lines(buf, lnum - 1, lnum, false)[1] or ""
-  if line ~= "" then
-    return vim.fn.indent(lnum)
-  end
-  local next_nonblank = vim.fn.nextnonblank(lnum)
-  local prev_nonblank = vim.fn.prevnonblank(lnum)
-  if next_nonblank == 0 or prev_nonblank == 0 or next_nonblank > last then
-    return 0
-  end
-  return math.min(vim.fn.indent(next_nonblank), vim.fn.indent(prev_nonblank))
+local function line_indent(win, buf, lnum, last)
+  return vim.api.nvim_win_call(win, function()
+    local line = vim.api.nvim_buf_get_lines(buf, lnum - 1, lnum, false)[1] or ""
+    if line ~= "" then
+      return vim.fn.indent(lnum)
+    end
+    local next_nonblank = vim.fn.nextnonblank(lnum)
+    local prev_nonblank = vim.fn.prevnonblank(lnum)
+    if next_nonblank == 0 or prev_nonblank == 0 or next_nonblank > last then
+      return 0
+    end
+    return math.min(vim.fn.indent(next_nonblank), vim.fn.indent(prev_nonblank))
+  end)
 end
 
 ---@private
@@ -49,10 +53,10 @@ local function scope_range(win)
   local buf = vim.api.nvim_win_get_buf(win)
   local cursor = vim.api.nvim_win_get_cursor(win)[1]
   local last = vim.api.nvim_buf_line_count(buf)
-  local indent = line_indent(buf, cursor, last)
+  local indent = line_indent(win, buf, cursor, last)
   -- a block opener owns the deeper scope below it
   if cursor < last then
-    local below = line_indent(buf, cursor + 1, last)
+    local below = line_indent(win, buf, cursor + 1, last)
     if below > indent then
       indent = below
     end
@@ -61,10 +65,10 @@ local function scope_range(win)
     return 0, 0, 0
   end
   local top, bottom = cursor, cursor
-  while top > 1 and line_indent(buf, top - 1, last) >= indent do
+  while top > 1 and line_indent(win, buf, top - 1, last) >= indent do
     top = top - 1
   end
-  while bottom < last and line_indent(buf, bottom + 1, last) >= indent do
+  while bottom < last and line_indent(win, buf, bottom + 1, last) >= indent do
     bottom = bottom + 1
   end
   return top, bottom, indent
@@ -74,8 +78,23 @@ end
 ---@type table<integer, {top: integer, bottom: integer, indent: integer}>
 local scopes = {}
 
+local function install_map(mode, lhs, rhs, desc)
+  vim.keymap.set(mode, lhs, rhs, { desc = desc })
+  table.insert(installed_maps, { mode = mode, lhs = lhs })
+end
+
+local function clear_maps()
+  for _, map in ipairs(installed_maps) do
+    pcall(vim.keymap.del, map.mode, map.lhs)
+  end
+  installed_maps = {}
+end
+
 ---@private
 local function on_win(_, win, buf, _)
+  if not enabled then
+    return false
+  end
   if vim.tbl_contains(M.config.exclude_filetypes, vim.bo[buf].filetype) or vim.bo[buf].buftype ~= "" then
     return false
   end
@@ -87,9 +106,12 @@ end
 
 ---@private
 local function on_line(_, win, buf, row)
+  if not enabled then
+    return
+  end
   local lnum = row + 1
   local last = vim.api.nvim_buf_line_count(buf)
-  local indent = line_indent(buf, lnum, last)
+  local indent = line_indent(win, buf, lnum, last)
   if indent == 0 then
     return
   end
@@ -118,6 +140,7 @@ local function on_line(_, win, buf, row)
 end
 
 --- Select or operate on the current indent scope.
+---@tag pint.indent-textobject
 ---@param outer boolean Include the line above (and trailing line for `ai`)
 function M.textobject(outer)
   local top, bottom = scope_range(vim.api.nvim_get_current_win())
@@ -138,6 +161,7 @@ function M.textobject(outer)
 end
 
 --- Jump to the top or bottom edge of the current indent scope.
+---@tag pint.indent-jump
 ---@param bottom boolean Jump to the bottom edge instead of the top
 function M.jump(bottom)
   local top, bot = scope_range(vim.api.nvim_get_current_win())
@@ -149,9 +173,12 @@ function M.jump(bottom)
 end
 
 --- Enable indent guides.
+---@tag pint.indent.setup
 ---@param opts? pint.indent.Config
 function M.setup(opts)
+  M.teardown()
   M.config = vim.tbl_deep_extend("force", vim.deepcopy(defaults), opts or {})
+  enabled = true
 
   vim.api.nvim_set_hl(0, "PintIndent", { link = "NonText", default = true })
   vim.api.nvim_set_hl(0, "PintIndentScope", { link = "Special", default = true })
@@ -163,20 +190,33 @@ function M.setup(opts)
 
   if M.config.textobject then
     for _, mode in ipairs({ "o", "x" }) do
-      vim.keymap.set(mode, "ii", function()
+      install_map(mode, "ii", function()
         M.textobject(false)
-      end, { desc = "inner scope" })
-      vim.keymap.set(mode, "ai", function()
+      end, "inner scope")
+      install_map(mode, "ai", function()
         M.textobject(true)
-      end, { desc = "outer scope" })
+      end, "outer scope")
     end
-    vim.keymap.set("n", "[i", function()
+    install_map("n", "[i", function()
       M.jump(false)
-    end, { desc = "Prev scope edge" })
-    vim.keymap.set("n", "]i", function()
+    end, "Prev scope edge")
+    install_map("n", "]i", function()
       M.jump(true)
-    end, { desc = "Next scope edge" })
+    end, "Next scope edge")
   end
+end
+
+--- Disable indent guides and remove installed textobject mappings.
+---@tag pint.indent.teardown
+function M.teardown()
+  enabled = false
+  scopes = {}
+  clear_maps()
+  vim.api.nvim_set_decoration_provider(ns, {
+    on_win = function()
+      return false
+    end,
+  })
 end
 
 return M

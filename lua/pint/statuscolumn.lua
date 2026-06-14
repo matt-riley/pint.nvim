@@ -14,6 +14,9 @@ local defaults = {
 }
 
 M.config = vim.deepcopy(defaults)
+local previous_statuscolumn
+local active = false
+local statuscolumn_expr = "%!v:lua.require'pint.statuscolumn'.get()"
 
 ---@private
 ---@alias pint.statuscolumn.Sign {name: string, text: string, texthl: string, priority: integer}
@@ -29,6 +32,16 @@ local function is_git(name)
     end
   end
   return false
+end
+
+---@private
+local function fold_text(lnum)
+  if vim.fn.foldclosed(lnum) == lnum then
+    return vim.opt.fillchars:get().foldclose or "+"
+  end
+  if M.config.folds.open and vim.fn.foldlevel(lnum) > vim.fn.foldlevel(lnum - 1) then
+    return vim.opt.fillchars:get().foldopen or "-"
+  end
 end
 
 ---@private
@@ -60,8 +73,24 @@ local function fmt(sign, width)
   if not sign then
     return (" "):rep(width)
   end
+  if width <= 0 then
+    return ""
+  end
   local text = vim.trim(sign.text or "")
-  text = text .. (" "):rep(width - vim.api.nvim_strwidth(text))
+  local chars = vim.fn.strchars(text)
+  local clipped = ""
+  for i = 1, chars do
+    local next_text = vim.fn.strcharpart(text, 0, i)
+    if vim.api.nvim_strwidth(next_text) > width then
+      break
+    end
+    clipped = next_text
+  end
+  text = clipped
+  local padding = width - vim.api.nvim_strwidth(text)
+  if padding > 0 then
+    text = text .. (" "):rep(padding)
+  end
   return sign.texthl and ("%%#%s#%s%%*"):format(sign.texthl, text) or text
 end
 
@@ -69,6 +98,9 @@ end
 --- `vim.o.statuscolumn = "%!v:lua.require'pint.statuscolumn'.get()"`
 ---@return string
 function M.get()
+  if not active then
+    return ""
+  end
   local win = vim.g.statusline_winid
   local buf = vim.api.nvim_win_get_buf(win)
   if vim.wo[win].signcolumn == "no" then
@@ -90,14 +122,12 @@ function M.get()
     end
   end
 
-  -- fold marker in the right slot when there's no git sign
+  local fold = fold_text(lnum)
   local right = git
-  if not right then
-    if vim.fn.foldclosed(lnum) == lnum then
-      right = { text = vim.opt.fillchars:get().foldclose or "+", texthl = "FoldColumn", priority = 0 }
-    elseif M.config.folds.open and vim.fn.foldlevel(lnum) > vim.fn.foldlevel(lnum - 1) then
-      right = { text = vim.opt.fillchars:get().foldopen or "-", texthl = "FoldColumn", priority = 0 }
-    end
+  if fold and git and M.config.folds.git_hl then
+    right = { text = fold, texthl = git.texthl or "FoldColumn", priority = git.priority }
+  elseif not right and fold then
+    right = { text = fold, texthl = "FoldColumn", priority = 0 }
   end
 
   local nu = ""
@@ -109,15 +139,21 @@ function M.get()
 end
 
 --- Set 'statuscolumn' globally and keep the sign cache fresh.
+---@tag pint.statuscolumn.setup
 ---@param opts? pint.statuscolumn.Config
 function M.setup(opts)
+  M.teardown()
   M.config = vim.tbl_deep_extend("force", vim.deepcopy(defaults), opts or {})
+  previous_statuscolumn = vim.o.statuscolumn
+  active = true
 
   local group = vim.api.nvim_create_augroup("PintStatuscolumn", { clear = true })
   -- extmark signs have no change event; invalidate per redraw cycle
   vim.api.nvim_set_decoration_provider(vim.api.nvim_create_namespace("pint.statuscolumn"), {
     on_start = function()
-      cache = {}
+      if active then
+        cache = {}
+      end
     end,
   })
   vim.api.nvim_create_autocmd({ "BufDelete", "BufWipeout" }, {
@@ -127,7 +163,19 @@ function M.setup(opts)
     end,
   })
 
-  vim.o.statuscolumn = "%!v:lua.require'pint.statuscolumn'.get()"
+  vim.o.statuscolumn = statuscolumn_expr
+end
+
+--- Restore the previous statuscolumn and clear cached sign state.
+---@tag pint.statuscolumn.teardown
+function M.teardown()
+  active = false
+  cache = {}
+  if vim.o.statuscolumn == statuscolumn_expr and previous_statuscolumn ~= nil then
+    vim.o.statuscolumn = previous_statuscolumn
+  end
+  previous_statuscolumn = nil
+  pcall(vim.api.nvim_del_augroup_by_name, "PintStatuscolumn")
 end
 
 return M

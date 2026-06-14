@@ -65,12 +65,12 @@ local function references(cb)
   local win = vim.api.nvim_get_current_win()
   local client = vim.lsp.get_clients({ bufnr = buf, method = "textDocument/documentHighlight" })[1]
   if not client then
-    return cb({})
+    return cb(win, buf, {})
   end
   local params = vim.lsp.util.make_position_params(win, client.offset_encoding)
   client:request("textDocument/documentHighlight", params, function(err, result)
-    if err or not result then
-      return cb({})
+    if err or not result or not vim.api.nvim_win_is_valid(win) or vim.api.nvim_win_get_buf(win) ~= buf then
+      return cb(win, buf, {})
     end
     local starts = {}
     for _, ref in ipairs(result) do
@@ -82,22 +82,28 @@ local function references(cb)
       end
       return a.line < b.line
     end)
-    cb(starts)
+    cb(win, buf, starts)
   end, buf)
 end
 
 --- Jump to a reference of the symbol under the cursor.
+---@tag pint.words-jump
 ---@param count integer 1 for next, -1 for previous
 ---@param cycle? boolean Wrap around at the ends. Default: true
 function M.jump(count, cycle)
   if cycle == nil then
     cycle = true
   end
-  references(function(starts)
+  references(function(win, buf, starts)
     if #starts == 0 then
       return
     end
-    local cur = vim.api.nvim_win_get_cursor(0)
+    if not vim.api.nvim_win_is_valid(win) or vim.api.nvim_win_get_buf(win) ~= buf then
+      return
+    end
+    local cur = vim.api.nvim_win_call(win, function()
+      return vim.api.nvim_win_get_cursor(0)
+    end)
     local line, col = cur[1] - 1, cur[2]
     local current = 1
     for i, pos in ipairs(starts) do
@@ -112,13 +118,17 @@ function M.jump(count, cycle)
       return
     end
     local pos = starts[target]
-    vim.api.nvim_win_set_cursor(0, { pos.line + 1, pos.character })
+    vim.api.nvim_win_call(win, function()
+      vim.api.nvim_win_set_cursor(0, { pos.line + 1, pos.character })
+    end)
   end)
 end
 
 --- Set up autocmds for automatic reference highlighting.
+---@tag pint.words.setup
 ---@param opts? pint.words.Config
 function M.setup(opts)
+  M.teardown()
   M.config = vim.tbl_deep_extend("force", vim.deepcopy(defaults), opts or {})
   enabled = M.config.enabled
 
@@ -140,6 +150,23 @@ function M.setup(opts)
       clear(ev.buf)
     end,
   })
+end
+
+--- Disable automatic highlighting and clear tracked references.
+---@tag pint.words.teardown
+function M.teardown()
+  enabled = false
+  if timer then
+    timer:stop()
+    if not timer:is_closing() then
+      timer:close()
+    end
+    timer = nil
+  end
+  pcall(vim.api.nvim_del_augroup_by_name, "PintWords")
+  if vim.api.nvim_buf_is_valid(vim.api.nvim_get_current_buf()) then
+    vim.lsp.buf.clear_references(vim.api.nvim_get_current_buf())
+  end
 end
 
 return M

@@ -30,6 +30,15 @@ local defaults = {
 M.config = vim.deepcopy(defaults)
 
 local modules = { "notifier", "statuscolumn", "indent", "words", "dashboard" }
+local teardown_modules = { "dashboard", "words", "indent", "statuscolumn", "notifier" }
+
+---@private
+local function safe_teardown(name)
+  local ok, mod = pcall(require, "pint." .. name)
+  if ok and type(mod.teardown) == "function" then
+    mod.teardown()
+  end
+end
 
 --- Configure and enable the plugin's modules.
 ---
@@ -38,6 +47,9 @@ local modules = { "notifier", "statuscolumn", "indent", "words", "dashboard" }
 ---@param opts? pint.Config User configuration options
 function M.setup(opts)
   opts = opts or {}
+  for _, name in ipairs(teardown_modules) do
+    safe_teardown(name)
+  end
   M.config = vim.tbl_deep_extend("force", vim.deepcopy(defaults), opts)
   for _, name in ipairs(modules) do
     if M.config[name] ~= false then

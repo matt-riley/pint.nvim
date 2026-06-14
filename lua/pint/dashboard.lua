@@ -36,6 +36,12 @@ local defaults = {
 
 M.config = vim.deepcopy(defaults)
 
+--- Disable dashboard autostart and clear its augroup.
+---@tag pint.dashboard.teardown
+function M.teardown()
+  pcall(vim.api.nvim_del_augroup_by_name, "PintDashboard")
+end
+
 ---@private
 local function recent_files()
   local cfg = M.config.recent
@@ -221,8 +227,10 @@ function M.open()
 end
 
 --- Configure the dashboard and open it on argument-less startup.
+---@tag pint.dashboard.setup
 ---@param opts? pint.dashboard.Config
 function M.setup(opts)
+  M.teardown()
   M.config = vim.tbl_deep_extend("force", vim.deepcopy(defaults), opts or {})
 
   vim.api.nvim_set_hl(0, "PintDashboardHeader", { link = "Title", default = true })
