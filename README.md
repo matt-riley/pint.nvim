@@ -19,7 +19,7 @@ Each module is independent and can be disabled.
 
 ## Requirements
 
-- Neovim 0.11+
+- Neovim 0.13+ (nightly until v0.13.0 stable ships)
 
 ## Versioning
 

@@ -5,7 +5,8 @@ on:
   pull_request:
 
 env:
-  NEOVIM_VERSION: v0.13.0
+  # v0.13.0 stable is not released yet; nightly tracks the 0.13 dev line.
+  NEOVIM_REF: nightly
   MINI_VERSION: v0.17.0
 
 jobs:
@@ -20,7 +21,7 @@ jobs:
 
       - name: Install Neovim
         run: |
-          curl -fsSL "https://github.com/neovim/neovim/releases/download/${NEOVIM_VERSION}/nvim-linux-x86_64.tar.gz" -o /tmp/nvim.tar.gz
+          curl -fsSL "https://github.com/neovim/neovim/releases/download/${NEOVIM_REF}/nvim-linux-x86_64.tar.gz" -o /tmp/nvim.tar.gz
           tar xzf /tmp/nvim.tar.gz -C /tmp
           echo "/tmp/nvim-linux-x86_64/bin" >> "$GITHUB_PATH"
           nvim --version
@@ -38,6 +39,6 @@ jobs:
         run: |
           {
             echo "### Neovim Tests summary"
-            echo "- neovim-version: \`${NEOVIM_VERSION}\`"
+            echo "- neovim-ref: \`${NEOVIM_REF}\`"
             echo "- mini-version: \`${MINI_VERSION}\`"
           } >> "$GITHUB_STEP_SUMMARY"

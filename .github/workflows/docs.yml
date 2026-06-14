@@ -15,7 +15,8 @@ permissions:
   contents: write
 
 env:
-  NEOVIM_VERSION: v0.13.0
+  # v0.13.0 stable is not released yet; nightly tracks the 0.13 dev line.
+  NEOVIM_REF: nightly
 
 jobs:
   docs:
@@ -26,7 +27,7 @@ jobs:
 
       - name: Install Neovim
         run: |
-          curl -fsSL "https://github.com/neovim/neovim/releases/download/${NEOVIM_VERSION}/nvim-linux-x86_64.tar.gz" -o /tmp/nvim.tar.gz
+          curl -fsSL "https://github.com/neovim/neovim/releases/download/${NEOVIM_REF}/nvim-linux-x86_64.tar.gz" -o /tmp/nvim.tar.gz
           tar xzf /tmp/nvim.tar.gz -C /tmp
           echo "/tmp/nvim-linux-x86_64/bin" >> "$GITHUB_PATH"
           nvim --version
