@@ -5,7 +5,7 @@ on:
   pull_request:
 
 env:
-  # v0.13.0 stable is not released yet; nightly tracks the 0.13 dev line.
+  # Neovim 0.13 is nightly.
   NEOVIM_REF: nightly
   MINI_VERSION: v0.17.0
 
