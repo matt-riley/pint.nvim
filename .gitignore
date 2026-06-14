@@ -6,6 +6,12 @@
 # mini.nvim CI clone
 .ci/
 
+# graphify temporary artifacts (keep graph.json, GRAPH_REPORT.md, .graphify_labels.json)
+graphify-out/.graphify_*
+graphify-out/cache/
+graphify-out/cost.json
+graphify-out/*.html
+
 # OS
 .DS_Store
 Thumbs.db

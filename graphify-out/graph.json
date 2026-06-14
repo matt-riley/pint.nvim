@@ -1,0 +1,2955 @@
+{
+  "directed": false,
+  "multigraph": false,
+  "graph": {
+    "hyperedges": [
+      {
+        "id": "setup_flow",
+        "nodes": [
+          "pint_setup",
+          "pint_dashboard",
+          "pint_notifier",
+          "pint_statuscolumn",
+          "pint_indent",
+          "pint_words"
+        ],
+        "relationship": "initialization pipeline",
+        "type": "EXTRACTED",
+        "confidence": 0.95
+      },
+      {
+        "id": "command_dispatch",
+        "nodes": [
+          "pint_command",
+          "dashboard_open",
+          "notifier_show_history",
+          "words_enable",
+          "words_disable"
+        ],
+        "relationship": "command subcommand routing",
+        "type": "EXTRACTED",
+        "confidence": 0.9
+      },
+      {
+        "id": "dashboard_rendering",
+        "nodes": [
+          "dashboard_open",
+          "dashboard_recent_files",
+          "dashboard_format_path",
+          "dashboard_file_icon"
+        ],
+        "relationship": "dashboard content assembly",
+        "type": "INFERRED",
+        "confidence": 0.85
+      },
+      {
+        "id": "config_merge",
+        "nodes": [
+          "pint_setup",
+          "dashboard_config",
+          "notifier_config",
+          "statuscolumn_config",
+          "indent_config",
+          "words_config"
+        ],
+        "relationship": "configuration merging and application",
+        "type": "INFERRED",
+        "confidence": 0.8
+      }
+    ]
+  },
+  "nodes": [
+    {
+      "label": "renovate.json",
+      "file_type": "code",
+      "source_file": ".github/renovate.json",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "github_renovate",
+      "community": 8,
+      "norm_label": "renovate.json"
+    },
+    {
+      "label": "$schema",
+      "file_type": "code",
+      "source_file": ".github/renovate.json",
+      "source_location": "L2",
+      "_origin": "ast",
+      "id": "github_renovate_schema",
+      "community": 8,
+      "norm_label": "$schema"
+    },
+    {
+      "label": "extends",
+      "file_type": "code",
+      "source_file": ".github/renovate.json",
+      "source_location": "L3",
+      "_origin": "ast",
+      "id": "github_renovate_extends",
+      "community": 8,
+      "norm_label": "extends"
+    },
+    {
+      "label": "pint_dashboard.lua",
+      "file_type": "code",
+      "source_file": "ftplugin/pint_dashboard.lua",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "ftplugin_pint_dashboard",
+      "community": 0,
+      "norm_label": "pint_dashboard.lua"
+    },
+    {
+      "label": "dashboard.lua",
+      "file_type": "code",
+      "source_file": "lua/pint/dashboard.lua",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "pint_dashboard",
+      "community": 0,
+      "norm_label": "dashboard.lua"
+    },
+    {
+      "label": "section_padding()",
+      "file_type": "code",
+      "source_file": "lua/pint/dashboard.lua",
+      "source_location": "L80",
+      "_origin": "ast",
+      "id": "pint_dashboard_section_padding",
+      "community": 0,
+      "norm_label": "section_padding()"
+    },
+    {
+      "label": "recent_files()",
+      "file_type": "code",
+      "source_file": "lua/pint/dashboard.lua",
+      "source_location": "L97",
+      "_origin": "ast",
+      "id": "pint_dashboard_recent_files",
+      "community": 0,
+      "norm_label": "recent_files()"
+    },
+    {
+      "label": "run()",
+      "file_type": "code",
+      "source_file": "lua/pint/dashboard.lua",
+      "source_location": "L119",
+      "_origin": "ast",
+      "id": "pint_dashboard_run",
+      "community": 0,
+      "norm_label": "run()"
+    },
+    {
+      "label": "strchars()",
+      "file_type": "code",
+      "source_file": "lua/pint/dashboard.lua",
+      "source_location": "L133",
+      "_origin": "ast",
+      "id": "pint_dashboard_strchars",
+      "community": 0,
+      "norm_label": "strchars()"
+    },
+    {
+      "label": "truncate_strwidth()",
+      "file_type": "code",
+      "source_file": "lua/pint/dashboard.lua",
+      "source_location": "L152",
+      "_origin": "ast",
+      "id": "pint_dashboard_truncate_strwidth",
+      "community": 0,
+      "norm_label": "truncate_strwidth()"
+    },
+    {
+      "label": "truncate_strwidth_tail()",
+      "file_type": "code",
+      "source_file": "lua/pint/dashboard.lua",
+      "source_location": "L185",
+      "_origin": "ast",
+      "id": "pint_dashboard_truncate_strwidth_tail",
+      "community": 0,
+      "norm_label": "truncate_strwidth_tail()"
+    },
+    {
+      "label": "file_icon()",
+      "file_type": "code",
+      "source_file": "lua/pint/dashboard.lua",
+      "source_location": "L220",
+      "_origin": "ast",
+      "id": "pint_dashboard_file_icon",
+      "community": 0,
+      "norm_label": "file_icon()"
+    },
+    {
+      "label": "recent_path_budget()",
+      "file_type": "code",
+      "source_file": "lua/pint/dashboard.lua",
+      "source_location": "L252",
+      "_origin": "ast",
+      "id": "pint_dashboard_recent_path_budget",
+      "community": 0,
+      "norm_label": "recent_path_budget()"
+    },
+    {
+      "label": "format_path()",
+      "file_type": "code",
+      "source_file": "lua/pint/dashboard.lua",
+      "source_location": "L265",
+      "_origin": "ast",
+      "id": "pint_dashboard_format_path",
+      "community": 0,
+      "norm_label": "format_path()"
+    },
+    {
+      "label": "recent_file_segments()",
+      "file_type": "code",
+      "source_file": "lua/pint/dashboard.lua",
+      "source_location": "L301",
+      "_origin": "ast",
+      "id": "pint_dashboard_recent_file_segments",
+      "community": 0,
+      "norm_label": "recent_file_segments()"
+    },
+    {
+      "label": "segs_width()",
+      "file_type": "code",
+      "source_file": "lua/pint/dashboard.lua",
+      "source_location": "L315",
+      "_origin": "ast",
+      "id": "pint_dashboard_segs_width",
+      "community": 0,
+      "norm_label": "segs_width()"
+    },
+    {
+      "label": "append_aligned_key()",
+      "file_type": "code",
+      "source_file": "lua/pint/dashboard.lua",
+      "source_location": "L326",
+      "_origin": "ast",
+      "id": "pint_dashboard_append_aligned_key",
+      "community": 0,
+      "norm_label": "append_aligned_key()"
+    },
+    {
+      "label": "align_row_keys()",
+      "file_type": "code",
+      "source_file": "lua/pint/dashboard.lua",
+      "source_location": "L339",
+      "_origin": "ast",
+      "id": "pint_dashboard_align_row_keys",
+      "community": 0,
+      "norm_label": "align_row_keys()"
+    },
+    {
+      "label": "build_segs_line()",
+      "file_type": "code",
+      "source_file": "lua/pint/dashboard.lua",
+      "source_location": "L370",
+      "_origin": "ast",
+      "id": "pint_dashboard_build_segs_line",
+      "community": 0,
+      "norm_label": "build_segs_line()"
+    },
+    {
+      "label": "nearest_action()",
+      "file_type": "code",
+      "source_file": "lua/pint/dashboard.lua",
+      "source_location": "L392",
+      "_origin": "ast",
+      "id": "pint_dashboard_nearest_action",
+      "community": 0,
+      "norm_label": "nearest_action()"
+    },
+    {
+      "label": "build_rows()",
+      "file_type": "code",
+      "source_file": "lua/pint/dashboard.lua",
+      "source_location": "L413",
+      "_origin": "ast",
+      "id": "pint_dashboard_build_rows",
+      "community": 0,
+      "norm_label": "build_rows()"
+    },
+    {
+      "label": "paint_dashboard()",
+      "file_type": "code",
+      "source_file": "lua/pint/dashboard.lua",
+      "source_location": "L579",
+      "_origin": "ast",
+      "id": "pint_dashboard_paint_dashboard",
+      "community": 0,
+      "norm_label": "paint_dashboard()"
+    },
+    {
+      "label": "M.open()",
+      "file_type": "code",
+      "source_file": "lua/pint/dashboard.lua",
+      "source_location": "L647",
+      "_origin": "ast",
+      "id": "pint_dashboard_m_open",
+      "community": 0,
+      "norm_label": "m.open()"
+    },
+    {
+      "label": "M.setup()",
+      "file_type": "code",
+      "source_file": "lua/pint/dashboard.lua",
+      "source_location": "L863",
+      "_origin": "ast",
+      "id": "pint_dashboard_m_setup",
+      "community": 0,
+      "norm_label": "m.setup()"
+    },
+    {
+      "label": "indent.lua",
+      "file_type": "code",
+      "source_file": "lua/pint/indent.lua",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "pint_indent",
+      "community": 4,
+      "norm_label": "indent.lua"
+    },
+    {
+      "label": "line_indent()",
+      "file_type": "code",
+      "source_file": "lua/pint/indent.lua",
+      "source_location": "L38",
+      "_origin": "ast",
+      "id": "pint_indent_line_indent",
+      "community": 4,
+      "norm_label": "line_indent()"
+    },
+    {
+      "label": "scope_range()",
+      "file_type": "code",
+      "source_file": "lua/pint/indent.lua",
+      "source_location": "L54",
+      "_origin": "ast",
+      "id": "pint_indent_scope_range",
+      "community": 4,
+      "norm_label": "scope_range()"
+    },
+    {
+      "label": "on_win()",
+      "file_type": "code",
+      "source_file": "lua/pint/indent.lua",
+      "source_location": "L84",
+      "_origin": "ast",
+      "id": "pint_indent_on_win",
+      "community": 4,
+      "norm_label": "on_win()"
+    },
+    {
+      "label": "on_line()",
+      "file_type": "code",
+      "source_file": "lua/pint/indent.lua",
+      "source_location": "L95",
+      "_origin": "ast",
+      "id": "pint_indent_on_line",
+      "community": 4,
+      "norm_label": "on_line()"
+    },
+    {
+      "label": "M.textobject()",
+      "file_type": "code",
+      "source_file": "lua/pint/indent.lua",
+      "source_location": "L129",
+      "_origin": "ast",
+      "id": "pint_indent_m_textobject",
+      "community": 4,
+      "norm_label": "m.textobject()"
+    },
+    {
+      "label": "M.jump()",
+      "file_type": "code",
+      "source_file": "lua/pint/indent.lua",
+      "source_location": "L150",
+      "_origin": "ast",
+      "id": "pint_indent_m_jump",
+      "community": 4,
+      "norm_label": "m.jump()"
+    },
+    {
+      "label": "M.setup()",
+      "file_type": "code",
+      "source_file": "lua/pint/indent.lua",
+      "source_location": "L162",
+      "_origin": "ast",
+      "id": "pint_indent_m_setup",
+      "community": 4,
+      "norm_label": "m.setup()"
+    },
+    {
+      "label": "init.lua",
+      "file_type": "code",
+      "source_file": "lua/pint/init.lua",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "pint_init",
+      "community": 7,
+      "norm_label": "init.lua"
+    },
+    {
+      "label": "M.setup()",
+      "file_type": "code",
+      "source_file": "lua/pint/init.lua",
+      "source_location": "L46",
+      "_origin": "ast",
+      "id": "pint_init_m_setup",
+      "community": 7,
+      "norm_label": "m.setup()"
+    },
+    {
+      "label": "notifier.lua",
+      "file_type": "code",
+      "source_file": "lua/pint/notifier.lua",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "pint_notifier",
+      "community": 1,
+      "norm_label": "notifier.lua"
+    },
+    {
+      "label": "meta_for()",
+      "file_type": "code",
+      "source_file": "lua/pint/notifier.lua",
+      "source_location": "L58",
+      "_origin": "ast",
+      "id": "pint_notifier_meta_for",
+      "community": 1,
+      "norm_label": "meta_for()"
+    },
+    {
+      "label": "border()",
+      "file_type": "code",
+      "source_file": "lua/pint/notifier.lua",
+      "source_location": "L62",
+      "_origin": "ast",
+      "id": "pint_notifier_border",
+      "community": 1,
+      "norm_label": "border()"
+    },
+    {
+      "label": "close_item()",
+      "file_type": "code",
+      "source_file": "lua/pint/notifier.lua",
+      "source_location": "L68",
+      "_origin": "ast",
+      "id": "pint_notifier_close_item",
+      "community": 1,
+      "norm_label": "close_item()"
+    },
+    {
+      "label": "layout()",
+      "file_type": "code",
+      "source_file": "lua/pint/notifier.lua",
+      "source_location": "L86",
+      "_origin": "ast",
+      "id": "pint_notifier_layout",
+      "community": 1,
+      "norm_label": "layout()"
+    },
+    {
+      "label": "render()",
+      "file_type": "code",
+      "source_file": "lua/pint/notifier.lua",
+      "source_location": "L111",
+      "_origin": "ast",
+      "id": "pint_notifier_render",
+      "community": 1,
+      "norm_label": "render()"
+    },
+    {
+      "label": "dismiss()",
+      "file_type": "code",
+      "source_file": "lua/pint/notifier.lua",
+      "source_location": "L157",
+      "_origin": "ast",
+      "id": "pint_notifier_dismiss",
+      "community": 1,
+      "norm_label": "dismiss()"
+    },
+    {
+      "label": "record_history()",
+      "file_type": "code",
+      "source_file": "lua/pint/notifier.lua",
+      "source_location": "L169",
+      "_origin": "ast",
+      "id": "pint_notifier_record_history",
+      "community": 1,
+      "norm_label": "record_history()"
+    },
+    {
+      "label": "M.notify()",
+      "file_type": "code",
+      "source_file": "lua/pint/notifier.lua",
+      "source_location": "L189",
+      "_origin": "ast",
+      "id": "pint_notifier_m_notify",
+      "community": 1,
+      "norm_label": "m.notify()"
+    },
+    {
+      "label": "M.show_history()",
+      "file_type": "code",
+      "source_file": "lua/pint/notifier.lua",
+      "source_location": "L240",
+      "_origin": "ast",
+      "id": "pint_notifier_m_show_history",
+      "community": 1,
+      "norm_label": "m.show_history()"
+    },
+    {
+      "label": "M.restore()",
+      "file_type": "code",
+      "source_file": "lua/pint/notifier.lua",
+      "source_location": "L279",
+      "_origin": "ast",
+      "id": "pint_notifier_m_restore",
+      "community": 1,
+      "norm_label": "m.restore()"
+    },
+    {
+      "label": "M.setup()",
+      "file_type": "code",
+      "source_file": "lua/pint/notifier.lua",
+      "source_location": "L293",
+      "_origin": "ast",
+      "id": "pint_notifier_m_setup",
+      "community": 1,
+      "norm_label": "m.setup()"
+    },
+    {
+      "label": "statuscolumn.lua",
+      "file_type": "code",
+      "source_file": "lua/pint/statuscolumn.lua",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "pint_statuscolumn",
+      "community": 3,
+      "norm_label": "statuscolumn.lua"
+    },
+    {
+      "label": "is_git()",
+      "file_type": "code",
+      "source_file": "lua/pint/statuscolumn.lua",
+      "source_location": "L31",
+      "_origin": "ast",
+      "id": "pint_statuscolumn_is_git",
+      "community": 3,
+      "norm_label": "is_git()"
+    },
+    {
+      "label": "buf_signs()",
+      "file_type": "code",
+      "source_file": "lua/pint/statuscolumn.lua",
+      "source_location": "L42",
+      "_origin": "ast",
+      "id": "pint_statuscolumn_buf_signs",
+      "community": 3,
+      "norm_label": "buf_signs()"
+    },
+    {
+      "label": "fmt()",
+      "file_type": "code",
+      "source_file": "lua/pint/statuscolumn.lua",
+      "source_location": "L65",
+      "_origin": "ast",
+      "id": "pint_statuscolumn_fmt",
+      "community": 3,
+      "norm_label": "fmt()"
+    },
+    {
+      "label": "M.get()",
+      "file_type": "code",
+      "source_file": "lua/pint/statuscolumn.lua",
+      "source_location": "L77",
+      "_origin": "ast",
+      "id": "pint_statuscolumn_m_get",
+      "community": 3,
+      "norm_label": "m.get()"
+    },
+    {
+      "label": "M.setup()",
+      "file_type": "code",
+      "source_file": "lua/pint/statuscolumn.lua",
+      "source_location": "L125",
+      "_origin": "ast",
+      "id": "pint_statuscolumn_m_setup",
+      "community": 3,
+      "norm_label": "m.setup()"
+    },
+    {
+      "label": "words.lua",
+      "file_type": "code",
+      "source_file": "lua/pint/words.lua",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "pint_words",
+      "community": 2,
+      "norm_label": "words.lua"
+    },
+    {
+      "label": "supported()",
+      "file_type": "code",
+      "source_file": "lua/pint/words.lua",
+      "source_location": "L38",
+      "_origin": "ast",
+      "id": "pint_words_supported",
+      "community": 2,
+      "norm_label": "supported()"
+    },
+    {
+      "label": "clear()",
+      "file_type": "code",
+      "source_file": "lua/pint/words.lua",
+      "source_location": "L43",
+      "_origin": "ast",
+      "id": "pint_words_clear",
+      "community": 2,
+      "norm_label": "clear()"
+    },
+    {
+      "label": "sorted_starts()",
+      "file_type": "code",
+      "source_file": "lua/pint/words.lua",
+      "source_location": "L52",
+      "_origin": "ast",
+      "id": "pint_words_sorted_starts",
+      "community": 2,
+      "norm_label": "sorted_starts()"
+    },
+    {
+      "label": "apply_highlights()",
+      "file_type": "code",
+      "source_file": "lua/pint/words.lua",
+      "source_location": "L67",
+      "_origin": "ast",
+      "id": "pint_words_apply_highlights",
+      "community": 2,
+      "norm_label": "apply_highlights()"
+    },
+    {
+      "label": "refresh()",
+      "file_type": "code",
+      "source_file": "lua/pint/words.lua",
+      "source_location": "L83",
+      "_origin": "ast",
+      "id": "pint_words_refresh",
+      "community": 2,
+      "norm_label": "refresh()"
+    },
+    {
+      "label": "highlight()",
+      "file_type": "code",
+      "source_file": "lua/pint/words.lua",
+      "source_location": "L125",
+      "_origin": "ast",
+      "id": "pint_words_highlight",
+      "community": 2,
+      "norm_label": "highlight()"
+    },
+    {
+      "label": "M.is_enabled()",
+      "file_type": "code",
+      "source_file": "lua/pint/words.lua",
+      "source_location": "L135",
+      "_origin": "ast",
+      "id": "pint_words_m_is_enabled",
+      "community": 2,
+      "norm_label": "m.is_enabled()"
+    },
+    {
+      "label": "M.enable()",
+      "file_type": "code",
+      "source_file": "lua/pint/words.lua",
+      "source_location": "L140",
+      "_origin": "ast",
+      "id": "pint_words_m_enable",
+      "community": 2,
+      "norm_label": "m.enable()"
+    },
+    {
+      "label": "M.disable()",
+      "file_type": "code",
+      "source_file": "lua/pint/words.lua",
+      "source_location": "L146",
+      "_origin": "ast",
+      "id": "pint_words_m_disable",
+      "community": 2,
+      "norm_label": "m.disable()"
+    },
+    {
+      "label": "jump_to()",
+      "file_type": "code",
+      "source_file": "lua/pint/words.lua",
+      "source_location": "L155",
+      "_origin": "ast",
+      "id": "pint_words_jump_to",
+      "community": 2,
+      "norm_label": "jump_to()"
+    },
+    {
+      "label": "M.jump()",
+      "file_type": "code",
+      "source_file": "lua/pint/words.lua",
+      "source_location": "L180",
+      "_origin": "ast",
+      "id": "pint_words_m_jump",
+      "community": 2,
+      "norm_label": "m.jump()"
+    },
+    {
+      "label": "M.setup()",
+      "file_type": "code",
+      "source_file": "lua/pint/words.lua",
+      "source_location": "L198",
+      "_origin": "ast",
+      "id": "pint_words_m_setup",
+      "community": 2,
+      "norm_label": "m.setup()"
+    },
+    {
+      "label": "pint.lua",
+      "file_type": "code",
+      "source_file": "plugin/pint.lua",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "plugin_pint",
+      "community": 11,
+      "norm_label": "pint.lua"
+    },
+    {
+      "label": "release-please-config.json",
+      "file_type": "code",
+      "source_file": "release-please-config.json",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "release_please_config",
+      "community": 5,
+      "norm_label": "release-please-config.json"
+    },
+    {
+      "label": "$schema",
+      "file_type": "code",
+      "source_file": "release-please-config.json",
+      "source_location": "L2",
+      "_origin": "ast",
+      "id": "release_please_config_schema",
+      "community": 5,
+      "norm_label": "$schema"
+    },
+    {
+      "label": "packages",
+      "file_type": "code",
+      "source_file": "release-please-config.json",
+      "source_location": "L3",
+      "_origin": "ast",
+      "id": "release_please_config_packages",
+      "community": 5,
+      "norm_label": "packages"
+    },
+    {
+      "label": "release-type",
+      "file_type": "code",
+      "source_file": "release-please-config.json",
+      "source_location": "L5",
+      "_origin": "ast",
+      "id": "release_please_config_release_type",
+      "community": 5,
+      "norm_label": "release-type"
+    },
+    {
+      "label": "changelog-path",
+      "file_type": "code",
+      "source_file": "release-please-config.json",
+      "source_location": "L6",
+      "_origin": "ast",
+      "id": "release_please_config_changelog_path",
+      "community": 5,
+      "norm_label": "changelog-path"
+    },
+    {
+      "label": "include-component-in-tag",
+      "file_type": "code",
+      "source_file": "release-please-config.json",
+      "source_location": "L7",
+      "_origin": "ast",
+      "id": "release_please_config_include_component_in_tag",
+      "community": 5,
+      "norm_label": "include-component-in-tag"
+    },
+    {
+      "label": "version-file",
+      "file_type": "code",
+      "source_file": "release-please-config.json",
+      "source_location": "L8",
+      "_origin": "ast",
+      "id": "release_please_config_version_file",
+      "community": 5,
+      "norm_label": "version-file"
+    },
+    {
+      "label": "bump-minor-pre-major",
+      "file_type": "code",
+      "source_file": "release-please-config.json",
+      "source_location": "L9",
+      "_origin": "ast",
+      "id": "release_please_config_bump_minor_pre_major",
+      "community": 5,
+      "norm_label": "bump-minor-pre-major"
+    },
+    {
+      "label": "bump-patch-for-minor-pre-major",
+      "file_type": "code",
+      "source_file": "release-please-config.json",
+      "source_location": "L10",
+      "_origin": "ast",
+      "id": "release_please_config_bump_patch_for_minor_pre_major",
+      "community": 5,
+      "norm_label": "bump-patch-for-minor-pre-major"
+    },
+    {
+      "label": "lint-commits.sh",
+      "file_type": "code",
+      "source_file": "scripts/lint-commits.sh",
+      "source_location": "L1",
+      "metadata": {
+        "language": "bash",
+        "kind": "file"
+      },
+      "_origin": "ast",
+      "id": "scripts_lint_commits",
+      "community": 9,
+      "norm_label": "lint-commits.sh"
+    },
+    {
+      "label": "lint-commits.sh script",
+      "file_type": "code",
+      "source_file": "scripts/lint-commits.sh",
+      "source_location": "L1",
+      "metadata": {
+        "language": "bash",
+        "kind": "bash_entrypoint"
+      },
+      "_origin": "ast",
+      "id": "users_mattriley_documents_projects_personal_pint_nvim_scripts_lint_commits_sh__entry",
+      "community": 9,
+      "norm_label": "lint-commits.sh script"
+    },
+    {
+      "label": "minimal_init.lua",
+      "file_type": "code",
+      "source_file": "tests/minimal_init.lua",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "tests_minimal_init",
+      "community": 3,
+      "norm_label": "minimal_init.lua"
+    },
+    {
+      "label": "add_mini()",
+      "file_type": "code",
+      "source_file": "tests/minimal_init.lua",
+      "source_location": "L3",
+      "_origin": "ast",
+      "id": "tests_minimal_init_add_mini",
+      "community": 3,
+      "norm_label": "add_mini()"
+    },
+    {
+      "label": "test_pint.lua",
+      "file_type": "code",
+      "source_file": "tests/test_pint.lua",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "tests_test_pint",
+      "community": 3,
+      "norm_label": "test_pint.lua"
+    },
+    {
+      "label": "pint.nvim",
+      "type": "EXTRACTED",
+      "category": "plugin",
+      "confidence": 1.0,
+      "source_location": "lua/pint/init.lua:1-60",
+      "description": "Neovim plugin providing focused UI components: dashboard, notifier, statuscolumn, indent guides, and LSP reference highlighting.",
+      "file_type": "concept",
+      "id": "pint_plugin",
+      "community": 7,
+      "norm_label": "pint.nvim"
+    },
+    {
+      "label": "pint.setup",
+      "type": "EXTRACTED",
+      "category": "function",
+      "confidence": 1.0,
+      "source_location": "lua/pint/init.lua:46-57",
+      "description": "Configures and enables the plugin's modules by merging user options with defaults and calling each module's setup function.",
+      "file_type": "concept",
+      "id": "pint_setup",
+      "community": 7,
+      "norm_label": "pint.setup"
+    },
+    {
+      "label": "dashboard.open",
+      "type": "INFERRED",
+      "category": "function",
+      "confidence": 0.9,
+      "source_location": "lua/pint/dashboard.lua",
+      "description": "Opens the dashboard UI in a buffer with header, keys, recent files, and custom sections.",
+      "file_type": "concept",
+      "id": "dashboard_open",
+      "community": 6,
+      "norm_label": "dashboard.open"
+    },
+    {
+      "label": "notifier.notify",
+      "type": "EXTRACTED",
+      "category": "function",
+      "confidence": 1.0,
+      "source_location": "lua/pint/notifier.lua:189-237",
+      "description": "Shows a notification matching vim.notify() signature with support for id-based replacement and history recording.",
+      "file_type": "concept",
+      "id": "notifier_notify",
+      "community": 1,
+      "norm_label": "notifier.notify"
+    },
+    {
+      "label": "notifier.show_history",
+      "type": "EXTRACTED",
+      "category": "function",
+      "confidence": 1.0,
+      "source_location": "lua/pint/notifier.lua:240-276",
+      "description": "Displays notification history in a floating window with formatted timestamps and message levels.",
+      "file_type": "concept",
+      "id": "notifier_show_history",
+      "community": 6,
+      "norm_label": "notifier.show_history"
+    },
+    {
+      "label": "statuscolumn.get",
+      "type": "EXTRACTED",
+      "category": "function",
+      "confidence": 1.0,
+      "source_location": "lua/pint/statuscolumn.lua:77-120",
+      "description": "Renders the statuscolumn for the current window, managing sign placement and fold indicators.",
+      "file_type": "concept",
+      "id": "statuscolumn_get",
+      "community": 3,
+      "norm_label": "statuscolumn.get"
+    },
+    {
+      "label": "indent.textobject",
+      "type": "EXTRACTED",
+      "category": "function",
+      "confidence": 1.0,
+      "source_location": "lua/pint/indent.lua:129-145",
+      "description": "Selects or operates on the current indent scope with optional outer variant for ii/ai bindings.",
+      "file_type": "concept",
+      "id": "indent_textobject",
+      "community": 4,
+      "norm_label": "indent.textobject"
+    },
+    {
+      "label": "indent.jump",
+      "type": "EXTRACTED",
+      "category": "function",
+      "confidence": 1.0,
+      "source_location": "lua/pint/indent.lua:150-157",
+      "description": "Jumps to the top or bottom edge of the current indent scope for [i/]i navigation.",
+      "file_type": "concept",
+      "id": "indent_jump",
+      "community": 4,
+      "norm_label": "indent.jump"
+    },
+    {
+      "label": "words.jump",
+      "type": "EXTRACTED",
+      "category": "function",
+      "confidence": 1.0,
+      "source_location": "lua/pint/words.lua:180-193",
+      "description": "Jumps to the next or previous reference of the symbol under the cursor with optional wrapping.",
+      "file_type": "concept",
+      "id": "words_jump",
+      "community": 2,
+      "norm_label": "words.jump"
+    },
+    {
+      "label": "words.enable",
+      "type": "EXTRACTED",
+      "category": "function",
+      "confidence": 1.0,
+      "source_location": "lua/pint/words.lua:140-143",
+      "description": "Enables reference highlighting and triggers an immediate highlight refresh.",
+      "file_type": "concept",
+      "id": "words_enable",
+      "community": 6,
+      "norm_label": "words.enable"
+    },
+    {
+      "label": "words.disable",
+      "type": "EXTRACTED",
+      "category": "function",
+      "confidence": 1.0,
+      "source_location": "lua/pint/words.lua:146-149",
+      "description": "Disables reference highlighting and clears existing highlights from the current buffer.",
+      "file_type": "concept",
+      "id": "words_disable",
+      "community": 6,
+      "norm_label": "words.disable"
+    },
+    {
+      "label": ":Pint",
+      "type": "EXTRACTED",
+      "category": "command",
+      "confidence": 1.0,
+      "source_location": "plugin/pint.lua:4-23",
+      "description": "User command that dispatches to dashboard, history, words-enable, and words-disable subcommands.",
+      "file_type": "concept",
+      "id": "pint_command",
+      "community": 6,
+      "norm_label": ":pint"
+    },
+    {
+      "label": "pint.Config",
+      "type": "EXTRACTED",
+      "category": "class",
+      "confidence": 1.0,
+      "source_location": "lua/pint/init.lua:19-24",
+      "description": "Plugin configuration class with optional config tables for each module, allowing false to disable.",
+      "file_type": "concept",
+      "id": "pint_config",
+      "community": 7,
+      "norm_label": "pint.config"
+    },
+    {
+      "label": "dashboard.Config",
+      "type": "EXTRACTED",
+      "category": "class",
+      "confidence": 1.0,
+      "source_location": "lua/pint/dashboard.lua:33-40",
+      "description": "Dashboard configuration with header, keys, recent files settings, custom sections, and autostart option.",
+      "file_type": "concept",
+      "id": "dashboard_config",
+      "community": 0,
+      "norm_label": "dashboard.config"
+    },
+    {
+      "label": "dashboard.Key",
+      "type": "EXTRACTED",
+      "category": "class",
+      "confidence": 1.0,
+      "source_location": "lua/pint/dashboard.lua:11-17",
+      "description": "Keyed action entry with icon, key binding, description, action, and optional enable/hide conditions.",
+      "file_type": "concept",
+      "id": "dashboard_key",
+      "community": 0,
+      "norm_label": "dashboard.key"
+    },
+    {
+      "label": "dashboard.Section",
+      "type": "EXTRACTED",
+      "category": "class",
+      "confidence": 1.0,
+      "source_location": "lua/pint/dashboard.lua:23-30",
+      "description": "Dashboard section with title, icon, items generator function, gap, padding, and enable conditions.",
+      "file_type": "concept",
+      "id": "dashboard_section",
+      "community": 0,
+      "norm_label": "dashboard.section"
+    },
+    {
+      "label": "notifier.Config",
+      "type": "EXTRACTED",
+      "category": "class",
+      "confidence": 1.0,
+      "source_location": "lua/pint/notifier.lua:12-17",
+      "description": "Notifier configuration with timeout, margin, border, stacking direction, and max history entries.",
+      "file_type": "concept",
+      "id": "notifier_config",
+      "community": 1,
+      "norm_label": "notifier.config"
+    },
+    {
+      "label": "statuscolumn.Config",
+      "type": "EXTRACTED",
+      "category": "class",
+      "confidence": 1.0,
+      "source_location": "lua/pint/statuscolumn.lua:12-14",
+      "description": "Statuscolumn configuration with fold markers, git sign patterns, and highlight options.",
+      "file_type": "concept",
+      "id": "statuscolumn_config",
+      "community": 3,
+      "norm_label": "statuscolumn.config"
+    },
+    {
+      "label": "indent.Config",
+      "type": "EXTRACTED",
+      "category": "class",
+      "confidence": 1.0,
+      "source_location": "lua/pint/indent.lua:13-19",
+      "description": "Indent configuration with guide character, highlight groups, scope highlighting, textobject binding, and file type exclusions.",
+      "file_type": "concept",
+      "id": "indent_config",
+      "community": 4,
+      "norm_label": "indent.config"
+    },
+    {
+      "label": "words.Config",
+      "type": "EXTRACTED",
+      "category": "class",
+      "confidence": 1.0,
+      "source_location": "lua/pint/words.lua:12-14",
+      "description": "Words configuration with debounce time for cursor rest before highlighting and enabled state.",
+      "file_type": "concept",
+      "id": "words_config",
+      "community": 2,
+      "norm_label": "words.config"
+    },
+    {
+      "label": "mini.test",
+      "type": "EXTRACTED",
+      "category": "dependency",
+      "confidence": 1.0,
+      "source_location": "tests/test_pint.lua:1-2",
+      "description": "Testing framework used for running pint.nvim test suite with structured test sets.",
+      "file_type": "concept",
+      "id": "mini_test",
+      "community": 3,
+      "norm_label": "mini.test"
+    },
+    {
+      "label": "test_setup_set",
+      "type": "EXTRACTED",
+      "category": "test_group",
+      "confidence": 0.9,
+      "source_location": "tests/test_pint.lua:7-28",
+      "description": "Test group validating pint.setup() default behavior, module disabling, and option merging.",
+      "file_type": "concept",
+      "id": "test_setup_set",
+      "community": 7,
+      "norm_label": "test_setup_set"
+    },
+    {
+      "label": "test_notifier_set",
+      "type": "EXTRACTED",
+      "category": "test_group",
+      "confidence": 0.9,
+      "source_location": "tests/test_pint.lua:30-52",
+      "description": "Test group for notifier module including vim.notify replacement and history display.",
+      "file_type": "concept",
+      "id": "test_notifier_set",
+      "community": 1,
+      "norm_label": "test_notifier_set"
+    },
+    {
+      "label": "test_statuscolumn_set",
+      "type": "EXTRACTED",
+      "category": "test_group",
+      "confidence": 0.9,
+      "source_location": "tests/test_pint.lua:54-66",
+      "description": "Test group for statuscolumn setup and expression installation.",
+      "file_type": "concept",
+      "id": "test_statuscolumn_set",
+      "community": 3,
+      "norm_label": "test_statuscolumn_set"
+    },
+    {
+      "label": "test_dashboard_set",
+      "type": "EXTRACTED",
+      "category": "test_group",
+      "confidence": 0.9,
+      "source_location": "tests/test_pint.lua:68-100",
+      "description": "Test group for dashboard rendering with header, recent files, and configuration handling.",
+      "file_type": "concept",
+      "id": "test_dashboard_set",
+      "community": 0,
+      "norm_label": "test_dashboard_set"
+    },
+    {
+      "label": "dashboard.recent_files",
+      "type": "INFERRED",
+      "category": "function",
+      "confidence": 0.85,
+      "source_location": "lua/pint/dashboard.lua:97-116",
+      "description": "Collects recent files from vim.v.oldfiles with optional cwd filtering and custom file filter.",
+      "file_type": "concept",
+      "id": "dashboard_recent_files",
+      "community": 6,
+      "norm_label": "dashboard.recent_files"
+    },
+    {
+      "label": "dashboard.format_path",
+      "type": "INFERRED",
+      "category": "function",
+      "confidence": 0.85,
+      "source_location": "lua/pint/dashboard.lua:265-294",
+      "description": "Formats file paths into display-width-truncated segments with directory and filename highlighting.",
+      "file_type": "concept",
+      "id": "dashboard_format_path",
+      "community": 6,
+      "norm_label": "dashboard.format_path"
+    },
+    {
+      "label": "dashboard.file_icon",
+      "type": "INFERRED",
+      "category": "function",
+      "confidence": 0.85,
+      "source_location": "lua/pint/dashboard.lua:220-244",
+      "description": "Resolves file icon and highlight using mini.icons, nvim-web-devicons, or filetype fallback.",
+      "file_type": "concept",
+      "id": "dashboard_file_icon",
+      "community": 6,
+      "norm_label": "dashboard.file_icon"
+    },
+    {
+      "label": "notifier.Item",
+      "type": "EXTRACTED",
+      "category": "class",
+      "confidence": 1.0,
+      "source_location": "lua/pint/notifier.lua:31-40",
+      "description": "Active notification item with id, message, level, title, icon, timestamps, and window/buffer state.",
+      "file_type": "concept",
+      "id": "notifier_item",
+      "community": 1,
+      "norm_label": "notifier.item"
+    },
+    {
+      "label": "vim.notify",
+      "type": "EXTRACTED",
+      "category": "neovim_api",
+      "confidence": 1.0,
+      "source_location": "lua/pint/notifier.lua:299-301",
+      "description": "Standard Neovim notification API, replaced by pint.notifier.notify during setup.",
+      "file_type": "concept",
+      "id": "vim_notify",
+      "community": 1,
+      "norm_label": "vim.notify"
+    },
+    {
+      "label": "README.md",
+      "type": "EXTRACTED",
+      "category": "documentation",
+      "confidence": 1.0,
+      "source_location": "README.md",
+      "description": "Project documentation covering features, requirements, installation, configuration, and usage examples.",
+      "file_type": "concept",
+      "id": "readme_md",
+      "community": 7,
+      "norm_label": "readme.md"
+    },
+    {
+      "label": "pint module defaults",
+      "type": "INFERRED",
+      "category": "concept",
+      "confidence": 0.8,
+      "source_location": "lua/pint/init.lua:27-33",
+      "description": "Each module (dashboard, notifier, statuscolumn, indent, words) has a defaults table merged with user config.",
+      "file_type": "concept",
+      "id": "pint_config_module_defaults",
+      "community": 10,
+      "norm_label": "pint module defaults"
+    }
+  ],
+  "links": [
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".github/renovate.json",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "github_renovate",
+      "target": "github_renovate_extends",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".github/renovate.json",
+      "source_location": "L2",
+      "weight": 1.0,
+      "source": "github_renovate",
+      "target": "github_renovate_schema",
+      "confidence_score": 1.0
+    },
+    {
+      "relationship": "configures",
+      "type": "EXTRACTED",
+      "confidence": 0.9,
+      "source": "ftplugin_pint_dashboard",
+      "target": "pint_dashboard",
+      "confidence_score": 1.0
+    },
+    {
+      "relationship": "uses",
+      "type": "EXTRACTED",
+      "confidence": 1.0,
+      "source": "pint_dashboard",
+      "target": "dashboard_config",
+      "confidence_score": 1.0
+    },
+    {
+      "relationship": "uses",
+      "type": "EXTRACTED",
+      "confidence": 0.9,
+      "source": "pint_dashboard",
+      "target": "dashboard_key",
+      "confidence_score": 1.0
+    },
+    {
+      "relationship": "defines",
+      "type": "INFERRED",
+      "confidence": 0.9,
+      "source": "pint_dashboard",
+      "target": "dashboard_open",
+      "confidence_score": 1.0
+    },
+    {
+      "relationship": "uses",
+      "type": "EXTRACTED",
+      "confidence": 0.9,
+      "source": "pint_dashboard",
+      "target": "dashboard_section",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/dashboard.lua",
+      "source_location": "L339",
+      "weight": 1.0,
+      "source": "pint_dashboard",
+      "target": "pint_dashboard_align_row_keys",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/dashboard.lua",
+      "source_location": "L326",
+      "weight": 1.0,
+      "source": "pint_dashboard",
+      "target": "pint_dashboard_append_aligned_key",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/dashboard.lua",
+      "source_location": "L413",
+      "weight": 1.0,
+      "source": "pint_dashboard",
+      "target": "pint_dashboard_build_rows",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/dashboard.lua",
+      "source_location": "L370",
+      "weight": 1.0,
+      "source": "pint_dashboard",
+      "target": "pint_dashboard_build_segs_line",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/dashboard.lua",
+      "source_location": "L220",
+      "weight": 1.0,
+      "source": "pint_dashboard",
+      "target": "pint_dashboard_file_icon",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/dashboard.lua",
+      "source_location": "L265",
+      "weight": 1.0,
+      "source": "pint_dashboard",
+      "target": "pint_dashboard_format_path",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/dashboard.lua",
+      "source_location": "L647",
+      "weight": 1.0,
+      "source": "pint_dashboard",
+      "target": "pint_dashboard_m_open",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/dashboard.lua",
+      "source_location": "L863",
+      "weight": 1.0,
+      "source": "pint_dashboard",
+      "target": "pint_dashboard_m_setup",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/dashboard.lua",
+      "source_location": "L392",
+      "weight": 1.0,
+      "source": "pint_dashboard",
+      "target": "pint_dashboard_nearest_action",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/dashboard.lua",
+      "source_location": "L579",
+      "weight": 1.0,
+      "source": "pint_dashboard",
+      "target": "pint_dashboard_paint_dashboard",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/dashboard.lua",
+      "source_location": "L301",
+      "weight": 1.0,
+      "source": "pint_dashboard",
+      "target": "pint_dashboard_recent_file_segments",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/dashboard.lua",
+      "source_location": "L97",
+      "weight": 1.0,
+      "source": "pint_dashboard",
+      "target": "pint_dashboard_recent_files",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/dashboard.lua",
+      "source_location": "L252",
+      "weight": 1.0,
+      "source": "pint_dashboard",
+      "target": "pint_dashboard_recent_path_budget",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/dashboard.lua",
+      "source_location": "L119",
+      "weight": 1.0,
+      "source": "pint_dashboard",
+      "target": "pint_dashboard_run",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/dashboard.lua",
+      "source_location": "L80",
+      "weight": 1.0,
+      "source": "pint_dashboard",
+      "target": "pint_dashboard_section_padding",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/dashboard.lua",
+      "source_location": "L315",
+      "weight": 1.0,
+      "source": "pint_dashboard",
+      "target": "pint_dashboard_segs_width",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/dashboard.lua",
+      "source_location": "L133",
+      "weight": 1.0,
+      "source": "pint_dashboard",
+      "target": "pint_dashboard_strchars",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/dashboard.lua",
+      "source_location": "L152",
+      "weight": 1.0,
+      "source": "pint_dashboard",
+      "target": "pint_dashboard_truncate_strwidth",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/dashboard.lua",
+      "source_location": "L185",
+      "weight": 1.0,
+      "source": "pint_dashboard",
+      "target": "pint_dashboard_truncate_strwidth_tail",
+      "confidence_score": 1.0
+    },
+    {
+      "relationship": "initializes",
+      "type": "EXTRACTED",
+      "confidence": 1.0,
+      "source": "pint_setup",
+      "target": "pint_dashboard",
+      "confidence_score": 1.0
+    },
+    {
+      "relationship": "tests",
+      "type": "EXTRACTED",
+      "confidence": 0.9,
+      "source": "test_dashboard_set",
+      "target": "pint_dashboard",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests/test_pint.lua",
+      "source_location": "5",
+      "weight": 1.0,
+      "source": "tests_test_pint",
+      "target": "pint_dashboard"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/dashboard.lua",
+      "source_location": "L488",
+      "weight": 1.0,
+      "source": "pint_dashboard_build_rows",
+      "target": "pint_dashboard_section_padding",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/dashboard.lua",
+      "source_location": "L465",
+      "weight": 1.0,
+      "source": "pint_dashboard_build_rows",
+      "target": "pint_dashboard_recent_files",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/dashboard.lua",
+      "source_location": "L816",
+      "weight": 1.0,
+      "source": "pint_dashboard_m_open",
+      "target": "pint_dashboard_run",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/dashboard.lua",
+      "source_location": "L169",
+      "weight": 1.0,
+      "source": "pint_dashboard_truncate_strwidth",
+      "target": "pint_dashboard_strchars",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/dashboard.lua",
+      "source_location": "L192",
+      "weight": 1.0,
+      "source": "pint_dashboard_truncate_strwidth_tail",
+      "target": "pint_dashboard_strchars",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/dashboard.lua",
+      "source_location": "L286",
+      "weight": 1.0,
+      "source": "pint_dashboard_format_path",
+      "target": "pint_dashboard_truncate_strwidth",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/dashboard.lua",
+      "source_location": "L204",
+      "weight": 1.0,
+      "source": "pint_dashboard_truncate_strwidth_tail",
+      "target": "pint_dashboard_truncate_strwidth",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/dashboard.lua",
+      "source_location": "L289",
+      "weight": 1.0,
+      "source": "pint_dashboard_format_path",
+      "target": "pint_dashboard_truncate_strwidth_tail",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/dashboard.lua",
+      "source_location": "L302",
+      "weight": 1.0,
+      "source": "pint_dashboard_recent_file_segments",
+      "target": "pint_dashboard_file_icon",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/dashboard.lua",
+      "source_location": "L463",
+      "weight": 1.0,
+      "source": "pint_dashboard_build_rows",
+      "target": "pint_dashboard_recent_path_budget",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/dashboard.lua",
+      "source_location": "L307",
+      "weight": 1.0,
+      "source": "pint_dashboard_recent_file_segments",
+      "target": "pint_dashboard_format_path",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/dashboard.lua",
+      "source_location": "L467",
+      "weight": 1.0,
+      "source": "pint_dashboard_build_rows",
+      "target": "pint_dashboard_recent_file_segments",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/dashboard.lua",
+      "source_location": "L342",
+      "weight": 1.0,
+      "source": "pint_dashboard_align_row_keys",
+      "target": "pint_dashboard_segs_width",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/dashboard.lua",
+      "source_location": "L328",
+      "weight": 1.0,
+      "source": "pint_dashboard_append_aligned_key",
+      "target": "pint_dashboard_segs_width",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/dashboard.lua",
+      "source_location": "L585",
+      "weight": 1.0,
+      "source": "pint_dashboard_paint_dashboard",
+      "target": "pint_dashboard_segs_width",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/dashboard.lua",
+      "source_location": "L358",
+      "weight": 1.0,
+      "source": "pint_dashboard_align_row_keys",
+      "target": "pint_dashboard_append_aligned_key",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/dashboard.lua",
+      "source_location": "L552",
+      "weight": 1.0,
+      "source": "pint_dashboard_build_rows",
+      "target": "pint_dashboard_align_row_keys",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/dashboard.lua",
+      "source_location": "L832",
+      "weight": 1.0,
+      "source": "pint_dashboard_m_open",
+      "target": "pint_dashboard_nearest_action",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/dashboard.lua",
+      "source_location": "L788",
+      "weight": 1.0,
+      "source": "pint_dashboard_m_open",
+      "target": "pint_dashboard_build_rows",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/dashboard.lua",
+      "source_location": "L789",
+      "weight": 1.0,
+      "source": "pint_dashboard_m_open",
+      "target": "pint_dashboard_paint_dashboard",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "lua/pint/dashboard.lua",
+      "source_location": "L855",
+      "weight": 1.0,
+      "source": "pint_dashboard_m_open",
+      "target": "pint_words_refresh"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/dashboard.lua",
+      "source_location": "L923",
+      "weight": 1.0,
+      "source": "pint_dashboard_m_setup",
+      "target": "pint_dashboard_m_open",
+      "confidence_score": 1.0
+    },
+    {
+      "relationship": "uses",
+      "type": "EXTRACTED",
+      "confidence": 1.0,
+      "source": "pint_indent",
+      "target": "indent_config",
+      "confidence_score": 1.0
+    },
+    {
+      "relationship": "defines",
+      "type": "EXTRACTED",
+      "confidence": 1.0,
+      "source": "pint_indent",
+      "target": "indent_jump",
+      "confidence_score": 1.0
+    },
+    {
+      "relationship": "defines",
+      "type": "EXTRACTED",
+      "confidence": 1.0,
+      "source": "pint_indent",
+      "target": "indent_textobject",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/indent.lua",
+      "source_location": "L38",
+      "weight": 1.0,
+      "source": "pint_indent",
+      "target": "pint_indent_line_indent",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/indent.lua",
+      "source_location": "L150",
+      "weight": 1.0,
+      "source": "pint_indent",
+      "target": "pint_indent_m_jump",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/indent.lua",
+      "source_location": "L162",
+      "weight": 1.0,
+      "source": "pint_indent",
+      "target": "pint_indent_m_setup",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/indent.lua",
+      "source_location": "L129",
+      "weight": 1.0,
+      "source": "pint_indent",
+      "target": "pint_indent_m_textobject",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/indent.lua",
+      "source_location": "L95",
+      "weight": 1.0,
+      "source": "pint_indent",
+      "target": "pint_indent_on_line",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/indent.lua",
+      "source_location": "L84",
+      "weight": 1.0,
+      "source": "pint_indent",
+      "target": "pint_indent_on_win",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/indent.lua",
+      "source_location": "L54",
+      "weight": 1.0,
+      "source": "pint_indent",
+      "target": "pint_indent_scope_range",
+      "confidence_score": 1.0
+    },
+    {
+      "relationship": "initializes",
+      "type": "EXTRACTED",
+      "confidence": 1.0,
+      "source": "pint_setup",
+      "target": "pint_indent",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/indent.lua",
+      "source_location": "L98",
+      "weight": 1.0,
+      "source": "pint_indent_on_line",
+      "target": "pint_indent_line_indent",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/indent.lua",
+      "source_location": "L58",
+      "weight": 1.0,
+      "source": "pint_indent_scope_range",
+      "target": "pint_indent_line_indent",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/indent.lua",
+      "source_location": "L151",
+      "weight": 1.0,
+      "source": "pint_indent_m_jump",
+      "target": "pint_indent_scope_range",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/indent.lua",
+      "source_location": "L130",
+      "weight": 1.0,
+      "source": "pint_indent_m_textobject",
+      "target": "pint_indent_scope_range",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/indent.lua",
+      "source_location": "L89",
+      "weight": 1.0,
+      "source": "pint_indent_on_win",
+      "target": "pint_indent_scope_range",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/indent.lua",
+      "source_location": "L184",
+      "weight": 1.0,
+      "source": "pint_indent_m_setup",
+      "target": "pint_indent_m_textobject",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/indent.lua",
+      "source_location": "L191",
+      "weight": 1.0,
+      "source": "pint_indent_m_setup",
+      "target": "pint_indent_m_jump",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/init.lua",
+      "source_location": "L46",
+      "weight": 1.0,
+      "source": "pint_init",
+      "target": "pint_init_m_setup",
+      "confidence_score": 1.0
+    },
+    {
+      "relationship": "defines",
+      "type": "EXTRACTED",
+      "confidence": 1.0,
+      "source": "pint_init",
+      "target": "pint_setup",
+      "confidence_score": 1.0
+    },
+    {
+      "relationship": "contains",
+      "type": "EXTRACTED",
+      "confidence": 1.0,
+      "source": "pint_plugin",
+      "target": "pint_init",
+      "confidence_score": 1.0
+    },
+    {
+      "relationship": "uses",
+      "type": "EXTRACTED",
+      "confidence": 1.0,
+      "source": "pint_notifier",
+      "target": "notifier_config",
+      "confidence_score": 1.0
+    },
+    {
+      "relationship": "uses",
+      "type": "EXTRACTED",
+      "confidence": 1.0,
+      "source": "pint_notifier",
+      "target": "notifier_item",
+      "confidence_score": 1.0
+    },
+    {
+      "relationship": "defines",
+      "type": "EXTRACTED",
+      "confidence": 1.0,
+      "source": "pint_notifier",
+      "target": "notifier_notify",
+      "confidence_score": 1.0
+    },
+    {
+      "relationship": "defines",
+      "type": "EXTRACTED",
+      "confidence": 1.0,
+      "source": "pint_notifier",
+      "target": "notifier_show_history",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/notifier.lua",
+      "source_location": "L62",
+      "weight": 1.0,
+      "source": "pint_notifier",
+      "target": "pint_notifier_border",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/notifier.lua",
+      "source_location": "L68",
+      "weight": 1.0,
+      "source": "pint_notifier",
+      "target": "pint_notifier_close_item",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/notifier.lua",
+      "source_location": "L157",
+      "weight": 1.0,
+      "source": "pint_notifier",
+      "target": "pint_notifier_dismiss",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/notifier.lua",
+      "source_location": "L86",
+      "weight": 1.0,
+      "source": "pint_notifier",
+      "target": "pint_notifier_layout",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/notifier.lua",
+      "source_location": "L189",
+      "weight": 1.0,
+      "source": "pint_notifier",
+      "target": "pint_notifier_m_notify",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/notifier.lua",
+      "source_location": "L279",
+      "weight": 1.0,
+      "source": "pint_notifier",
+      "target": "pint_notifier_m_restore",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/notifier.lua",
+      "source_location": "L293",
+      "weight": 1.0,
+      "source": "pint_notifier",
+      "target": "pint_notifier_m_setup",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/notifier.lua",
+      "source_location": "L240",
+      "weight": 1.0,
+      "source": "pint_notifier",
+      "target": "pint_notifier_m_show_history",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/notifier.lua",
+      "source_location": "L58",
+      "weight": 1.0,
+      "source": "pint_notifier",
+      "target": "pint_notifier_meta_for",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/notifier.lua",
+      "source_location": "L169",
+      "weight": 1.0,
+      "source": "pint_notifier",
+      "target": "pint_notifier_record_history",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/notifier.lua",
+      "source_location": "L111",
+      "weight": 1.0,
+      "source": "pint_notifier",
+      "target": "pint_notifier_render",
+      "confidence_score": 1.0
+    },
+    {
+      "relationship": "initializes",
+      "type": "EXTRACTED",
+      "confidence": 1.0,
+      "source": "pint_setup",
+      "target": "pint_notifier",
+      "confidence_score": 1.0
+    },
+    {
+      "relationship": "tests",
+      "type": "EXTRACTED",
+      "confidence": 0.9,
+      "source": "test_notifier_set",
+      "target": "pint_notifier",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/notifier.lua",
+      "source_location": "L243",
+      "weight": 1.0,
+      "source": "pint_notifier_m_show_history",
+      "target": "pint_notifier_meta_for",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/notifier.lua",
+      "source_location": "L112",
+      "weight": 1.0,
+      "source": "pint_notifier_render",
+      "target": "pint_notifier_meta_for",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/notifier.lua",
+      "source_location": "L267",
+      "weight": 1.0,
+      "source": "pint_notifier_m_show_history",
+      "target": "pint_notifier_border",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/notifier.lua",
+      "source_location": "L139",
+      "weight": 1.0,
+      "source": "pint_notifier_render",
+      "target": "pint_notifier_border",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/notifier.lua",
+      "source_location": "L160",
+      "weight": 1.0,
+      "source": "pint_notifier_dismiss",
+      "target": "pint_notifier_close_item",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/notifier.lua",
+      "source_location": "L285",
+      "weight": 1.0,
+      "source": "pint_notifier_m_restore",
+      "target": "pint_notifier_close_item",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/notifier.lua",
+      "source_location": "L165",
+      "weight": 1.0,
+      "source": "pint_notifier_dismiss",
+      "target": "pint_notifier_layout",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/notifier.lua",
+      "source_location": "L222",
+      "weight": 1.0,
+      "source": "pint_notifier_m_notify",
+      "target": "pint_notifier_layout",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/notifier.lua",
+      "source_location": "L221",
+      "weight": 1.0,
+      "source": "pint_notifier_m_notify",
+      "target": "pint_notifier_render",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/notifier.lua",
+      "source_location": "L233",
+      "weight": 1.0,
+      "source": "pint_notifier_m_notify",
+      "target": "pint_notifier_dismiss",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/notifier.lua",
+      "source_location": "L213",
+      "weight": 1.0,
+      "source": "pint_notifier_m_notify",
+      "target": "pint_notifier_record_history",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/notifier.lua",
+      "source_location": "L300",
+      "weight": 1.0,
+      "source": "pint_notifier_m_setup",
+      "target": "pint_notifier_m_notify",
+      "confidence_score": 1.0
+    },
+    {
+      "relationship": "initializes",
+      "type": "EXTRACTED",
+      "confidence": 1.0,
+      "source": "pint_setup",
+      "target": "pint_statuscolumn",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/statuscolumn.lua",
+      "source_location": "L42",
+      "weight": 1.0,
+      "source": "pint_statuscolumn",
+      "target": "pint_statuscolumn_buf_signs",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/statuscolumn.lua",
+      "source_location": "L65",
+      "weight": 1.0,
+      "source": "pint_statuscolumn",
+      "target": "pint_statuscolumn_fmt",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/statuscolumn.lua",
+      "source_location": "L31",
+      "weight": 1.0,
+      "source": "pint_statuscolumn",
+      "target": "pint_statuscolumn_is_git",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/statuscolumn.lua",
+      "source_location": "L77",
+      "weight": 1.0,
+      "source": "pint_statuscolumn",
+      "target": "pint_statuscolumn_m_get",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/statuscolumn.lua",
+      "source_location": "L125",
+      "weight": 1.0,
+      "source": "pint_statuscolumn",
+      "target": "pint_statuscolumn_m_setup",
+      "confidence_score": 1.0
+    },
+    {
+      "relationship": "uses",
+      "type": "EXTRACTED",
+      "confidence": 1.0,
+      "source": "pint_statuscolumn",
+      "target": "statuscolumn_config",
+      "confidence_score": 1.0
+    },
+    {
+      "relationship": "defines",
+      "type": "EXTRACTED",
+      "confidence": 1.0,
+      "source": "pint_statuscolumn",
+      "target": "statuscolumn_get",
+      "confidence_score": 1.0
+    },
+    {
+      "relationship": "tests",
+      "type": "EXTRACTED",
+      "confidence": 0.9,
+      "source": "test_statuscolumn_set",
+      "target": "pint_statuscolumn",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests/test_pint.lua",
+      "source_location": "473",
+      "weight": 1.0,
+      "source": "tests_test_pint",
+      "target": "pint_statuscolumn"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/statuscolumn.lua",
+      "source_location": "L90",
+      "weight": 1.0,
+      "source": "pint_statuscolumn_m_get",
+      "target": "pint_statuscolumn_is_git",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/statuscolumn.lua",
+      "source_location": "L85",
+      "weight": 1.0,
+      "source": "pint_statuscolumn_m_get",
+      "target": "pint_statuscolumn_buf_signs",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/statuscolumn.lua",
+      "source_location": "L119",
+      "weight": 1.0,
+      "source": "pint_statuscolumn_m_get",
+      "target": "pint_statuscolumn_fmt",
+      "confidence_score": 1.0
+    },
+    {
+      "relationship": "initializes",
+      "type": "EXTRACTED",
+      "confidence": 1.0,
+      "source": "pint_setup",
+      "target": "pint_words",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/words.lua",
+      "source_location": "L67",
+      "weight": 1.0,
+      "source": "pint_words",
+      "target": "pint_words_apply_highlights",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/words.lua",
+      "source_location": "L43",
+      "weight": 1.0,
+      "source": "pint_words",
+      "target": "pint_words_clear",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/words.lua",
+      "source_location": "L125",
+      "weight": 1.0,
+      "source": "pint_words",
+      "target": "pint_words_highlight",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/words.lua",
+      "source_location": "L155",
+      "weight": 1.0,
+      "source": "pint_words",
+      "target": "pint_words_jump_to",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/words.lua",
+      "source_location": "L146",
+      "weight": 1.0,
+      "source": "pint_words",
+      "target": "pint_words_m_disable",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/words.lua",
+      "source_location": "L140",
+      "weight": 1.0,
+      "source": "pint_words",
+      "target": "pint_words_m_enable",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/words.lua",
+      "source_location": "L135",
+      "weight": 1.0,
+      "source": "pint_words",
+      "target": "pint_words_m_is_enabled",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/words.lua",
+      "source_location": "L180",
+      "weight": 1.0,
+      "source": "pint_words",
+      "target": "pint_words_m_jump",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/words.lua",
+      "source_location": "L198",
+      "weight": 1.0,
+      "source": "pint_words",
+      "target": "pint_words_m_setup",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/words.lua",
+      "source_location": "L83",
+      "weight": 1.0,
+      "source": "pint_words",
+      "target": "pint_words_refresh",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/words.lua",
+      "source_location": "L52",
+      "weight": 1.0,
+      "source": "pint_words",
+      "target": "pint_words_sorted_starts",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/words.lua",
+      "source_location": "L38",
+      "weight": 1.0,
+      "source": "pint_words",
+      "target": "pint_words_supported",
+      "confidence_score": 1.0
+    },
+    {
+      "relationship": "uses",
+      "type": "EXTRACTED",
+      "confidence": 1.0,
+      "source": "pint_words",
+      "target": "words_config",
+      "confidence_score": 1.0
+    },
+    {
+      "relationship": "defines",
+      "type": "EXTRACTED",
+      "confidence": 1.0,
+      "source": "pint_words",
+      "target": "words_disable",
+      "confidence_score": 1.0
+    },
+    {
+      "relationship": "defines",
+      "type": "EXTRACTED",
+      "confidence": 1.0,
+      "source": "pint_words",
+      "target": "words_enable",
+      "confidence_score": 1.0
+    },
+    {
+      "relationship": "defines",
+      "type": "EXTRACTED",
+      "confidence": 1.0,
+      "source": "pint_words",
+      "target": "words_jump",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests/test_pint.lua",
+      "source_location": "747",
+      "weight": 1.0,
+      "source": "tests_test_pint",
+      "target": "pint_words"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/words.lua",
+      "source_location": "L127",
+      "weight": 1.0,
+      "source": "pint_words_highlight",
+      "target": "pint_words_supported",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/words.lua",
+      "source_location": "L84",
+      "weight": 1.0,
+      "source": "pint_words_refresh",
+      "target": "pint_words_supported",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/words.lua",
+      "source_location": "L148",
+      "weight": 1.0,
+      "source": "pint_words_m_disable",
+      "target": "pint_words_clear",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/words.lua",
+      "source_location": "L206",
+      "weight": 1.0,
+      "source": "pint_words_m_setup",
+      "target": "pint_words_clear",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/words.lua",
+      "source_location": "L85",
+      "weight": 1.0,
+      "source": "pint_words_refresh",
+      "target": "pint_words_clear",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/words.lua",
+      "source_location": "L78",
+      "weight": 1.0,
+      "source": "pint_words_apply_highlights",
+      "target": "pint_words_sorted_starts",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/words.lua",
+      "source_location": "L116",
+      "weight": 1.0,
+      "source": "pint_words_refresh",
+      "target": "pint_words_apply_highlights",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/words.lua",
+      "source_location": "L130",
+      "weight": 1.0,
+      "source": "pint_words_highlight",
+      "target": "pint_words_refresh",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/words.lua",
+      "source_location": "L190",
+      "weight": 1.0,
+      "source": "pint_words_m_jump",
+      "target": "pint_words_refresh",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/words.lua",
+      "source_location": "L142",
+      "weight": 1.0,
+      "source": "pint_words_m_enable",
+      "target": "pint_words_highlight",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "lua/pint/words.lua",
+      "source_location": "L187",
+      "weight": 1.0,
+      "source": "pint_words_m_jump",
+      "target": "pint_words_jump_to",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "release-please-config.json",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "release_please_config",
+      "target": "release_please_config_packages",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "release-please-config.json",
+      "source_location": "L2",
+      "weight": 1.0,
+      "source": "release_please_config",
+      "target": "release_please_config_schema",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "release-please-config.json",
+      "source_location": "L9",
+      "weight": 1.0,
+      "source": "release_please_config_packages",
+      "target": "release_please_config_bump_minor_pre_major",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "release-please-config.json",
+      "source_location": "L10",
+      "weight": 1.0,
+      "source": "release_please_config_packages",
+      "target": "release_please_config_bump_patch_for_minor_pre_major",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "release-please-config.json",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "release_please_config_packages",
+      "target": "release_please_config_changelog_path",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "release-please-config.json",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "release_please_config_packages",
+      "target": "release_please_config_include_component_in_tag",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "release-please-config.json",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "release_please_config_packages",
+      "target": "release_please_config_release_type",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "release-please-config.json",
+      "source_location": "L8",
+      "weight": 1.0,
+      "source": "release_please_config_packages",
+      "target": "release_please_config_version_file",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/lint-commits.sh",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "scripts_lint_commits",
+      "target": "users_mattriley_documents_projects_personal_pint_nvim_scripts_lint_commits_sh__entry",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests/minimal_init.lua",
+      "source_location": "25",
+      "weight": 1.0,
+      "source": "tests_minimal_init",
+      "target": "mini_test"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/minimal_init.lua",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "tests_minimal_init",
+      "target": "tests_minimal_init_add_mini",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests/test_pint.lua",
+      "source_location": "1",
+      "weight": 1.0,
+      "source": "tests_test_pint",
+      "target": "mini_test"
+    },
+    {
+      "relationship": "documents",
+      "type": "EXTRACTED",
+      "confidence": 1.0,
+      "source": "readme_md",
+      "target": "pint_plugin",
+      "confidence_score": 1.0
+    },
+    {
+      "relationship": "configures",
+      "type": "EXTRACTED",
+      "confidence": 1.0,
+      "source": "pint_setup",
+      "target": "pint_config",
+      "confidence_score": 1.0
+    },
+    {
+      "relationship": "tests",
+      "type": "EXTRACTED",
+      "confidence": 0.9,
+      "source": "test_setup_set",
+      "target": "pint_setup",
+      "confidence_score": 1.0
+    },
+    {
+      "relationship": "calls",
+      "type": "INFERRED",
+      "confidence": 0.85,
+      "source": "dashboard_open",
+      "target": "dashboard_file_icon",
+      "confidence_score": 1.0
+    },
+    {
+      "relationship": "calls",
+      "type": "INFERRED",
+      "confidence": 0.85,
+      "source": "dashboard_open",
+      "target": "dashboard_format_path",
+      "confidence_score": 1.0
+    },
+    {
+      "relationship": "calls",
+      "type": "INFERRED",
+      "confidence": 0.85,
+      "source": "dashboard_open",
+      "target": "dashboard_recent_files",
+      "confidence_score": 1.0
+    },
+    {
+      "relationship": "calls",
+      "type": "EXTRACTED",
+      "confidence": 1.0,
+      "source": "pint_command",
+      "target": "dashboard_open",
+      "confidence_score": 1.0
+    },
+    {
+      "relationship": "replaces",
+      "type": "EXTRACTED",
+      "confidence": 1.0,
+      "source": "notifier_notify",
+      "target": "vim_notify",
+      "confidence_score": 1.0
+    },
+    {
+      "relationship": "calls",
+      "type": "EXTRACTED",
+      "confidence": 1.0,
+      "source": "pint_command",
+      "target": "notifier_show_history",
+      "confidence_score": 1.0
+    },
+    {
+      "relationship": "calls",
+      "type": "EXTRACTED",
+      "confidence": 1.0,
+      "source": "pint_command",
+      "target": "words_enable",
+      "confidence_score": 1.0
+    },
+    {
+      "relationship": "calls",
+      "type": "EXTRACTED",
+      "confidence": 1.0,
+      "source": "pint_command",
+      "target": "words_disable",
+      "confidence_score": 1.0
+    }
+  ],
+  "hyperedges": [
+    {
+      "id": "setup_flow",
+      "nodes": [
+        "pint_setup",
+        "pint_dashboard",
+        "pint_notifier",
+        "pint_statuscolumn",
+        "pint_indent",
+        "pint_words"
+      ],
+      "relationship": "initialization pipeline",
+      "type": "EXTRACTED",
+      "confidence": 0.95
+    },
+    {
+      "id": "command_dispatch",
+      "nodes": [
+        "pint_command",
+        "dashboard_open",
+        "notifier_show_history",
+        "words_enable",
+        "words_disable"
+      ],
+      "relationship": "command subcommand routing",
+      "type": "EXTRACTED",
+      "confidence": 0.9
+    },
+    {
+      "id": "dashboard_rendering",
+      "nodes": [
+        "dashboard_open",
+        "dashboard_recent_files",
+        "dashboard_format_path",
+        "dashboard_file_icon"
+      ],
+      "relationship": "dashboard content assembly",
+      "type": "INFERRED",
+      "confidence": 0.85
+    },
+    {
+      "id": "config_merge",
+      "nodes": [
+        "pint_setup",
+        "dashboard_config",
+        "notifier_config",
+        "statuscolumn_config",
+        "indent_config",
+        "words_config"
+      ],
+      "relationship": "configuration merging and application",
+      "type": "INFERRED",
+      "confidence": 0.8
+    }
+  ],
+  "built_at_commit": "ff957482fb34e4c5f24cca668760bb72d6df5088"
+}
