@@ -1,0 +1,30 @@
+name: Commits
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  conventional-commits:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Lint commit messages
+        env:
+          GITHUB_BASE_REF: ${{ github.base_ref }}
+        run: |
+          chmod +x scripts/lint-commits.sh
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            scripts/lint-commits.sh "origin/${{ github.base_ref }}..HEAD"
+          else
+            before="${{ github.event.before }}"
+            if [[ -z "$before" || "$before" == "0000000000000000000000000000000000000000" ]]; then
+              scripts/lint-commits.sh HEAD~1..HEAD
+            else
+              scripts/lint-commits.sh "${before}..HEAD"
+            fi
+          fi

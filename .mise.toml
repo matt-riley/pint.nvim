@@ -26,3 +26,6 @@ run = "make format-check"
 
 [tasks.docs]
 run = "make docs"
+
+[tasks.commits]
+run = "chmod +x scripts/lint-commits.sh && scripts/lint-commits.sh"

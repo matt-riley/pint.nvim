@@ -84,6 +84,8 @@ Section padding accepts either `{ bottom = 2, top = 1 }` or `{ 2, 1 }` (bottom, 
 
 ## Development
 
+Commit messages follow [Conventional Commits](https://www.conventionalcommits.org/) so `release-please` can version and changelog correctly. Examples: `feat(dashboard): add section icons`, `fix(notifier): dedupe history ids`, `chore(docs): regenerate vim help`.
+
 CI uses [mise](https://mise.jdx.dev/) via the shared [matt-riley-ci](https://github.com/matt-riley/matt-riley-ci) universal workflow. Local setup:
 
 ```bash
@@ -93,6 +95,7 @@ mise run test
 mise run lint
 mise run fmt
 mise run docs
+mise run commits
 ```
 
 `make` targets still work if you already have Neovim nightly, stylua, and luacheck on your `PATH`.
