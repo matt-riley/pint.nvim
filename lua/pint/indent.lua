@@ -33,19 +33,59 @@ M.config = vim.deepcopy(defaults)
 local ns = vim.api.nvim_create_namespace("pint.indent")
 
 ---@private
+---Indent of a line in screen columns (tabs expanded per the buffer's tabstop).
+---Computed from buffer text so it is correct for non-current buffers, unlike
+---vim.fn.indent which only reads the current buffer.
+---@return integer
+local function indent_width(buf, line)
+  local ws = line:match("^%s*")
+  if ws == "" then
+    return 0
+  end
+  if not ws:find("\t", 1, true) then
+    return #ws
+  end
+  local ts = vim.bo[buf].tabstop
+  local width = 0
+  for i = 1, #ws do
+    if ws:byte(i) == 9 then
+      width = width + (ts - (width % ts))
+    else
+      width = width + 1
+    end
+  end
+  return width
+end
+
+---@private
+---First line in `[from, to]` (stepping by `step`) with non-whitespace, or 0.
+---@return integer
+local function nonblank(buf, from, to, step)
+  for lnum = from, to, step do
+    local line = vim.api.nvim_buf_get_lines(buf, lnum - 1, lnum, false)[1]
+    if line and line:find("%S") then
+      return lnum
+    end
+  end
+  return 0
+end
+
+---@private
 ---Effective indent of a line, looking through blanks to the next non-blank.
 ---@return integer
 local function line_indent(buf, lnum, last)
   local line = vim.api.nvim_buf_get_lines(buf, lnum - 1, lnum, false)[1] or ""
   if line ~= "" then
-    return vim.fn.indent(lnum)
+    return indent_width(buf, line)
   end
-  local next_nonblank = vim.fn.nextnonblank(lnum)
-  local prev_nonblank = vim.fn.prevnonblank(lnum)
-  if next_nonblank == 0 or prev_nonblank == 0 or next_nonblank > last then
+  local next_nonblank = nonblank(buf, lnum, last, 1)
+  local prev_nonblank = nonblank(buf, lnum, 1, -1)
+  if next_nonblank == 0 or prev_nonblank == 0 then
     return 0
   end
-  return math.min(vim.fn.indent(next_nonblank), vim.fn.indent(prev_nonblank))
+  local next_line = vim.api.nvim_buf_get_lines(buf, next_nonblank - 1, next_nonblank, false)[1] or ""
+  local prev_line = vim.api.nvim_buf_get_lines(buf, prev_nonblank - 1, prev_nonblank, false)[1] or ""
+  return math.min(indent_width(buf, next_line), indent_width(buf, prev_line))
 end
 
 ---@private
