@@ -170,6 +170,7 @@ function M.setup(opts)
     on_line = on_line,
   })
 
+  local group = vim.api.nvim_create_augroup("PintIndent", { clear = true })
   vim.api.nvim_create_autocmd("WinClosed", {
     group = group,
     callback = function(ev)

@@ -342,7 +342,8 @@ dashboard_set["open() with indent indents section items"] = function()
   MiniTest.expect.equality(child_line ~= nil, true, "child item should appear")
   -- Should start with at least 4 spaces.
   MiniTest.expect.equality(
-    child_line:sub(1, 4) == "    ", true,
+    child_line:sub(1, 4) == "    ",
+    true,
     ("child line should be indented, got: %q"):format(child_line)
   )
 end
@@ -393,10 +394,7 @@ dashboard_set["open() with disabled section hides it"] = function()
   local buf = vim.api.nvim_get_current_buf()
   local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
   for _, line in ipairs(lines) do
-    MiniTest.expect.equality(
-      line:find("Hidden Section", 1, true), nil,
-      "disabled section should not appear"
-    )
+    MiniTest.expect.equality(line:find("Hidden Section", 1, true), nil, "disabled section should not appear")
   end
 end
 
@@ -489,8 +487,6 @@ dashboard_set["open() with custom width constrains content"] = function()
   dashboard.open()
   local buf = vim.api.nvim_get_current_buf()
   local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
-  -- Every non-blank line should fit within width + pad_left
-  local win_width = vim.api.nvim_win_get_width(0)
   for _, line in ipairs(lines) do
     local stripped = line:gsub("^%s+", "")
     MiniTest.expect.equality(#stripped <= 20, true, ("line too wide: %q"):format(line))
@@ -527,8 +523,12 @@ dashboard_set["open() with header string splits on newlines"] = function()
   local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
   local found1, found2 = false, false
   for _, line in ipairs(lines) do
-    if line:find("Line1", 1, true) then found1 = true end
-    if line:find("Line2", 1, true) then found2 = true end
+    if line:find("Line1", 1, true) then
+      found1 = true
+    end
+    if line:find("Line2", 1, true) then
+      found2 = true
+    end
   end
   MiniTest.expect.equality(found1, true, "Line1 should appear")
   MiniTest.expect.equality(found2, true, "Line2 should appear")

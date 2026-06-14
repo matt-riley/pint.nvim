@@ -209,9 +209,8 @@ local function build_rows(win)
     table.insert(rows, { text = "" })
   end
 
-  local header_lines = type(M.config.header) == "string"
-      and vim.split(M.config.header, "\n", { plain = true })
-      or M.config.header
+  local header_lines = type(M.config.header) == "string" and vim.split(M.config.header, "\n", { plain = true })
+    or M.config.header
   for _, line in ipairs(header_lines) do
     table.insert(rows, { text = { { line, hl = "PintDashboardHeader" } } })
   end
@@ -434,7 +433,12 @@ function M.open()
   wo.sidescrolloff = 0
   -- Override Normal so the dashboard background stays consistent regardless
   -- of colorscheme / float background differences.
-  pcall(vim.api.nvim_set_option_value, "winhighlight", "Normal:PintDashboardNormal,NormalFloat:PintDashboardNormal", { win = win })
+  pcall(
+    vim.api.nvim_set_option_value,
+    "winhighlight",
+    "Normal:PintDashboardNormal,NormalFloat:PintDashboardNormal",
+    { win = win }
+  )
 
   -- Suppress tabline / statusline for a cleaner startup look.
   local saved = { showtabline = vim.o.showtabline, laststatus = vim.o.laststatus }
@@ -502,11 +506,15 @@ function M.open()
   ctx.pad_left, ctx.pad_top = paint_dashboard(buf, win, ctx.rows)
 
   -- Keymaps and action tracking
-  local action_rows = vim.iter(ipairs(ctx.rows)):filter(function(_, row)
-    return row.action ~= nil
-  end):map(function(i, _)
-    return ctx.pad_top + i
-  end):totable()
+  local action_rows = vim
+    .iter(ipairs(ctx.rows))
+    :filter(function(_, row)
+      return row.action ~= nil
+    end)
+    :map(function(i, _)
+      return ctx.pad_top + i
+    end)
+    :totable()
   bind_row_keys()
 
   -- Set initial cursor on the first actionable row
@@ -567,16 +575,16 @@ function M.setup(opts)
 
   -- Highlight groups — all default=true so users can override them.
   local hls = {
-    PintDashboardNormal  = { link = "Normal", default = true },
-    PintDashboardHeader  = { link = "Title", default = true },
-    PintDashboardTitle   = { link = "Title", default = true },
-    PintDashboardIcon    = { link = "Special", default = true },
-    PintDashboardDesc    = { link = "Normal", default = true },
-    PintDashboardKey     = { link = "Number", default = true },
-    PintDashboardItem    = { link = "Comment", default = true },
-    PintDashboardDir     = { link = "NonText", default = true },
-    PintDashboardFile    = { link = "Special", default = true },
-    PintDashboardFooter  = { link = "NonText", default = true },
+    PintDashboardNormal = { link = "Normal", default = true },
+    PintDashboardHeader = { link = "Title", default = true },
+    PintDashboardTitle = { link = "Title", default = true },
+    PintDashboardIcon = { link = "Special", default = true },
+    PintDashboardDesc = { link = "Normal", default = true },
+    PintDashboardKey = { link = "Number", default = true },
+    PintDashboardItem = { link = "Comment", default = true },
+    PintDashboardDir = { link = "NonText", default = true },
+    PintDashboardFile = { link = "Special", default = true },
+    PintDashboardFooter = { link = "NonText", default = true },
     PintDashboardSpecial = { link = "Special", default = true },
   }
   for name, hl in pairs(hls) do
@@ -607,15 +615,17 @@ function M.setup(opts)
           return
         end
         -- Only one non-floating window
-        local normal_wins = vim.iter(vim.api.nvim_list_wins()):filter(function(w)
-          return vim.api.nvim_win_get_config(w).relative == ""
-        end):totable()
+        local normal_wins = vim
+          .iter(vim.api.nvim_list_wins())
+          :filter(function(w)
+            return vim.api.nvim_win_get_config(w).relative == ""
+          end)
+          :totable()
         if #normal_wins ~= 1 then
           return
         end
         -- Buffer should be empty
-        if vim.api.nvim_buf_line_count(0) > 1
-          or #(vim.api.nvim_buf_get_lines(0, 0, 1, false)[1] or "") > 0 then
+        if vim.api.nvim_buf_line_count(0) > 1 or #(vim.api.nvim_buf_get_lines(0, 0, 1, false)[1] or "") > 0 then
           return
         end
         M.open()
