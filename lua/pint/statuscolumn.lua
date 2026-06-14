@@ -2,6 +2,12 @@
 -- Statuscolumn: [non-git sign] [line number] [fold] [git sign].
 local M = {}
 
+--- pint.statuscolumn
+---
+--- Statuscolumn layout: `[sign] [number] [fold/git sign]`.
+---
+---@tag pint-statuscolumn
+
 --- Statuscolumn configuration.
 ---@class pint.statuscolumn.Config
 ---@field folds? {open: boolean, git_hl: boolean} Show open-fold markers; reuse git sign hl for fold icons
@@ -90,13 +96,18 @@ function M.get()
     end
   end
 
+  local fold_hl = "FoldColumn"
+  if M.config.folds.git_hl and git and git.texthl then
+    fold_hl = git.texthl
+  end
+
   -- fold marker in the right slot when there's no git sign
   local right = git
   if not right then
     if vim.fn.foldclosed(lnum) == lnum then
-      right = { text = vim.opt.fillchars:get().foldclose or "+", texthl = "FoldColumn", priority = 0 }
+      right = { text = vim.opt.fillchars:get().foldclose or "+", texthl = fold_hl, priority = 0 }
     elseif M.config.folds.open and vim.fn.foldlevel(lnum) > vim.fn.foldlevel(lnum - 1) then
-      right = { text = vim.opt.fillchars:get().foldopen or "-", texthl = "FoldColumn", priority = 0 }
+      right = { text = vim.opt.fillchars:get().foldopen or "-", texthl = fold_hl, priority = 0 }
     end
   end
 
@@ -110,6 +121,7 @@ end
 
 --- Set 'statuscolumn' globally and keep the sign cache fresh.
 ---@param opts? pint.statuscolumn.Config
+---@private
 function M.setup(opts)
   M.config = vim.tbl_deep_extend("force", vim.deepcopy(defaults), opts or {})
 

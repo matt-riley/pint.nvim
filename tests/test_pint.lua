@@ -536,4 +536,120 @@ end
 
 T["dashboard"] = dashboard_set
 
+local indent_set = MiniTest.new_set({
+  hooks = {
+    pre_case = function()
+      pint.setup({ dashboard = { autostart = false } })
+    end,
+  },
+})
+
+indent_set["setup() maps scope textobjects"] = function()
+  local found = false
+  for _, mode in ipairs({ "o", "x", "n" }) do
+    for _, m in ipairs(vim.api.nvim_get_keymap(mode)) do
+      if m.lhs == "ii" or m.lhs == "ai" or m.lhs == "[i" or m.lhs == "]i" then
+        found = true
+      end
+    end
+  end
+  MiniTest.expect.equality(found, true, "indent textobjects and jumps should be mapped")
+end
+
+T["indent"] = indent_set
+
+local words_set = MiniTest.new_set({
+  hooks = {
+    pre_case = function()
+      pint.setup({ dashboard = { autostart = false }, words = { enabled = true } })
+    end,
+  },
+})
+
+words_set["enable() and disable() toggle state"] = function()
+  local words = require("pint.words")
+  words.disable()
+  MiniTest.expect.equality(words.is_enabled(), false)
+  words.enable()
+  MiniTest.expect.equality(words.is_enabled(), true)
+end
+
+T["words"] = words_set
+
+notifier_set["notify() with id replaces history entry"] = function()
+  vim.notify("first", vim.log.levels.INFO, { id = "job", title = "Job" })
+  vim.notify("second", vim.log.levels.INFO, { id = "job", title = "Job" })
+  require("pint.notifier").show_history()
+  local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+  vim.cmd.close()
+  local first_count, second_count = 0, 0
+  for _, line in ipairs(lines) do
+    if line:find("first", 1, true) then
+      first_count = first_count + 1
+    end
+    if line:find("second", 1, true) then
+      second_count = second_count + 1
+    end
+  end
+  MiniTest.expect.equality(first_count, 0, "replaced id should not keep first message")
+  MiniTest.expect.equality(second_count, 1, "replaced id should keep latest message")
+end
+
+local notifier_restore_set = MiniTest.new_set()
+
+notifier_restore_set["disabling restores previous vim.notify"] = function()
+  require("pint.notifier").restore()
+  local baseline = vim.notify
+  pint.setup({ dashboard = { autostart = false }, notifier = {} })
+  MiniTest.expect.no_equality(vim.notify, baseline)
+  pint.setup({ dashboard = { autostart = false }, notifier = false })
+  MiniTest.expect.equality(vim.notify, baseline)
+end
+
+T["notifier_restore"] = notifier_restore_set
+
+dashboard_set["open() with named padding adds blank lines around section"] = function()
+  dashboard.setup({
+    autostart = false,
+    header = {},
+    recent = { enabled = false },
+    sections = {
+      {
+        title = "Named Pad",
+        padding = { bottom = 2, top = 1 },
+        items = function()
+          return { { label = "Only", action = ":echo 'x'" } }
+        end,
+      },
+    },
+  })
+  dashboard.open()
+  local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+  local title_idx, item_idx = nil, nil
+  for i, line in ipairs(lines) do
+    if line:find("Named Pad", 1, true) then
+      title_idx = i
+    end
+    if line:find("Only", 1, true) then
+      item_idx = i
+    end
+  end
+  MiniTest.expect.equality(title_idx ~= nil, true)
+  MiniTest.expect.equality(item_idx ~= nil, true)
+  if title_idx > 1 then
+    MiniTest.expect.equality(
+      lines[title_idx - 1] == "" or (lines[title_idx - 1] or ""):match("^%s*$") ~= nil,
+      true,
+      "line above title should be blank (top padding)"
+    )
+  end
+  local blank_after = 0
+  for i = item_idx + 1, math.min(item_idx + 3, #lines) do
+    if lines[i] == "" or lines[i]:match("^%s*$") then
+      blank_after = blank_after + 1
+    end
+  end
+  MiniTest.expect.equality(blank_after >= 2, true, "should have bottom padding after item")
+end
+
 return T

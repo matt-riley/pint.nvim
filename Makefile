@@ -21,7 +21,7 @@ docs:
 		-c 'lua vim.opt.runtimepath:prepend(vim.fn.getcwd())' \
 		-c 'lua if vim.env.MINI_PATH and vim.env.MINI_PATH ~= "" then vim.opt.runtimepath:append(vim.env.MINI_PATH) end' \
 		-c 'lua require("mini.doc").setup({})' \
-		-c 'lua require("mini.doc").generate({ "lua/pint/init.lua" }, "doc/pint.txt")' \
+		-c 'lua require("mini.doc").generate({ "lua/pint/init.lua", "lua/pint/dashboard.lua", "lua/pint/notifier.lua", "lua/pint/statuscolumn.lua", "lua/pint/indent.lua", "lua/pint/words.lua" }, "doc/pint.txt")' \
 		-c 'lua local p="doc/pint.txt"; local v=(vim.fn.readfile("VERSION")[1] or ""):gsub("%s+$$",""); local out={}; for _,ln in ipairs(vim.fn.readfile(p)) do if not ln:match("^Version:%s") then out[#out+1]=ln end end; table.insert(out, 4, "Version: " .. v); table.insert(out, 5, ""); vim.fn.writefile(out, p)' \
+		-c 'helptags doc' \
 		-c 'qa'
-	@rm -f doc/tags

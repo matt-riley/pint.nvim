@@ -2,12 +2,19 @@
 -- Floating-window vim.notify implementation with history and id-replacement.
 local M = {}
 
+--- pint.notifier
+---
+--- Floating-window |vim.notify()| handler with stacking, id-replacement, and history.
+---
+---@tag pint-notifier
+
 --- Notifier configuration.
 ---@class pint.notifier.Config
 ---@field timeout? integer Milliseconds before a notification hides. Default: 2000
 ---@field margin? {top: integer, right: integer, bottom: integer}
 ---@field border? string Window border. Default: vim.o.winborder or "rounded"
 ---@field top_down? boolean Stack new notifications at the top. Default: false
+---@field max_history? integer Maximum history entries to retain. Default: 200
 
 ---@private
 local defaults = {
@@ -15,6 +22,7 @@ local defaults = {
   margin = { top = 0, right = 1, bottom = 1 },
   border = nil,
   top_down = false,
+  max_history = 200,
 }
 
 M.config = vim.deepcopy(defaults)
@@ -33,9 +41,11 @@ M.config = vim.deepcopy(defaults)
 
 ---@type pint.notifier.Item[] active notifications, in display order
 local active = {}
----@type pint.notifier.Item[]
+---@type {id?: string|integer, msg: string, level: integer, title?: string, time: integer}[]
 local history = {}
 local next_id = 0
+local original_notify ---@type fun(msg: string, level?: integer, opts?: table)|nil
+local installed = false
 
 local level_meta = {
   [vim.log.levels.TRACE] = { hl = "DiagnosticHint", icon = "T", name = "Trace" },
@@ -155,6 +165,23 @@ local function dismiss(id)
   layout()
 end
 
+---@private
+local function record_history(entry)
+  if entry.id then
+    for i = #history, 1, -1 do
+      if history[i].id == entry.id then
+        history[i] = entry
+        return
+      end
+    end
+  end
+  table.insert(history, entry)
+  local limit = M.config.max_history
+  while limit and limit > 0 and #history > limit do
+    table.remove(history, 1)
+  end
+end
+
 --- Show a notification. Signature matches |vim.notify()|.
 ---@param msg string
 ---@param level? integer
@@ -183,7 +210,13 @@ function M.notify(msg, level, opts)
   item.title = opts.title
   item.icon = opts.icon
   item.time = os.time()
-  table.insert(history, { msg = msg, level = level, title = opts.title, time = item.time })
+  record_history({
+    id = opts.id,
+    msg = msg,
+    level = level,
+    title = opts.title,
+    time = item.time,
+  })
 
   render(item)
   layout()
@@ -242,10 +275,27 @@ function M.show_history()
   end
 end
 
+--- Restore the previous |vim.notify()| handler.
+function M.restore()
+  if installed and original_notify then
+    vim.notify = original_notify
+    installed = false
+  end
+  for _, item in ipairs(active) do
+    close_item(item)
+  end
+  active = {}
+end
+
 --- Install pint as the vim.notify handler.
 ---@param opts? pint.notifier.Config
+---@private
 function M.setup(opts)
   M.config = vim.tbl_deep_extend("force", vim.deepcopy(defaults), opts or {})
+  if not installed then
+    original_notify = vim.notify
+    installed = true
+  end
   vim.notify = function(msg, level, o)
     M.notify(msg, level, o)
   end

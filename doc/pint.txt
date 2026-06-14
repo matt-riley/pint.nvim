@@ -6,6 +6,13 @@ Version: 0.1.0
 A small measure of UI: dashboard, notifier, statuscolumn, indent guides,
 and LSP reference words. Scoped to exactly what one config needs.
 
+Modules ~
+- |pint-dashboard|: `require("pint.dashboard").open()`
+- |pint-notifier|: `:Pint history`, `require("pint.notifier").show_history()`
+- |pint-statuscolumn|: sets `'statuscolumn'` globally
+- |pint-indent|: indent guides with `ii`/`ai` and `[i`/`]i`
+- |pint-words|: LSP reference highlights with `require("pint.words").jump()`
+
 ------------------------------------------------------------------------------
 Plugin configuration.
 Class ~
@@ -26,6 +33,211 @@ Pass `false` for any module to disable it.
 
 Parameters ~
 {opts} `(optional)` `(pint.Config)` User configuration options
+
+
+==============================================================================
+------------------------------------------------------------------------------
+                                                                *pint-dashboard*
+pint.dashboard
+
+Startup dashboard with header, keyed actions, recent files, and custom sections.
+
+------------------------------------------------------------------------------
+Class ~
+{pint.dashboard.Key}
+Fields ~
+{icon} `(optional)` `(string)` Icon (usually a Nerd Font glyph)
+{key} `(string)` Single key that triggers the action
+{desc} `(string)`
+{action} `(string|fun())` Keys (starting with "<" or ":") or a function
+{enabled} `(optional)` `(boolean|fun():boolean)` When false, the key row is hidden
+{hidden} `(optional)` `(boolean)` When true, the row is hidden but its keymap is still active
+
+------------------------------------------------------------------------------
+Class ~
+{pint.dashboard.Item}
+Fields ~
+{label} `(string)`
+{action} `(string|fun())`
+
+------------------------------------------------------------------------------
+Class ~
+{pint.dashboard.Section}
+Fields ~
+{title} `(string)`
+{icon} `(optional)` `(string)`
+{items} `(fun(): pint.dashboard.Item[])`
+{gap} `(optional)` `(integer)` Empty lines between child items
+{padding} `(optional)` `(integer|{bottom?:integer, top?:integer, [1]?:integer, [2]?:integer})` Padding around the section
+{indent} `(optional)` `(integer)` Spaces to indent child items
+{enabled} `(optional)` `(boolean|fun():boolean)` When false, the section is hidden
+
+------------------------------------------------------------------------------
+Dashboard configuration.
+Class ~
+{pint.dashboard.Config}
+Fields ~
+{header} `(optional)` `(string|string[])` ASCII-art header (string is split on newlines)
+{keys} `(optional)` `(pint.dashboard.Key[])`
+{recent} `(optional)` `({enabled?: boolean, cwd?: boolean, limit?: integer, filter?: fun(file: string): boolean})`
+{sections} `(optional)` `(pint.dashboard.Section[])`
+{autostart} `(optional)` `(boolean)` Open when Neovim starts with no arguments. Default: true
+{width} `(optional)` `(integer)` Maximum content width. Auto-detected when nil.
+{autokeys} `(optional)` `(string)` Sequence of chars for auto-assigned keys (default: 1-9, a-z)
+
+------------------------------------------------------------------------------
+Class ~
+{pint.dashboard.Row}
+Fields ~
+{text} `(string|(string|{ [1]: string, hl?: string })[])`
+{action} `(optional)` `(string|fun())`
+{key} `(optional)` `(string)`
+
+------------------------------------------------------------------------------
+                                                                      *M.open()*
+                                   `M.open`()
+Open the dashboard in the current window.
+
+
+==============================================================================
+------------------------------------------------------------------------------
+                                                                 *pint-notifier*
+pint.notifier
+
+Floating-window |vim.notify()| handler with stacking, id-replacement, and history.
+
+------------------------------------------------------------------------------
+Notifier configuration.
+Class ~
+{pint.notifier.Config}
+Fields ~
+{timeout} `(optional)` `(integer)` Milliseconds before a notification hides. Default: 2000
+{margin} `(optional)` `({top: integer, right: integer, bottom: integer})`
+{border} `(optional)` `(string)` Window border. Default: vim.o.winborder or "rounded"
+{top_down} `(optional)` `(boolean)` Stack new notifications at the top. Default: false
+{max_history} `(optional)` `(integer)` Maximum history entries to retain. Default: 200
+
+------------------------------------------------------------------------------
+                                                                        *active*
+                                    `active`
+Type ~
+`(pint.notifier.Item[])` active notifications, in display order
+
+------------------------------------------------------------------------------
+                                                                       *history*
+                                   `history`
+Type ~
+`({id?: string|integer, msg: string, level: integer, title?: string, time: integer}[])`
+
+------------------------------------------------------------------------------
+                                                                    *M.notify()*
+                       `M.notify`({msg}, {level}, {opts})
+Show a notification. Signature matches |vim.notify()|.
+Parameters ~
+{msg} `(string)`
+{level} `(optional)` `(integer)`
+{opts} `(optional)` `({title?: string, icon?: string, id?: string|integer, timeout?: integer})`
+
+------------------------------------------------------------------------------
+                                                              *M.show_history()*
+                               `M.show_history`()
+Show notification history in a floating window.
+
+------------------------------------------------------------------------------
+                                                                   *M.restore()*
+                                 `M.restore`()
+Restore the previous |vim.notify()| handler.
+
+
+==============================================================================
+------------------------------------------------------------------------------
+                                                             *pint-statuscolumn*
+pint.statuscolumn
+
+Statuscolumn layout: `[sign] [number] [fold/git sign]`.
+
+------------------------------------------------------------------------------
+Statuscolumn configuration.
+Class ~
+{pint.statuscolumn.Config}
+Fields ~
+{folds} `(optional)` `({open: boolean, git_hl: boolean})` Show open-fold markers; reuse git sign hl for fold icons
+{git_patterns} `(optional)` `(string[])` Sign/extmark name patterns treated as git signs
+
+------------------------------------------------------------------------------
+                                                                       *M.get()*
+                                   `M.get`()
+Render the statuscolumn for the current window. Use via:
+`vim.o.statuscolumn = "%!v:lua.require'pint.statuscolumn'.get()"`
+Return ~
+`(string)`
+
+
+==============================================================================
+------------------------------------------------------------------------------
+                                                                   *pint-indent*
+pint.indent
+
+Static indent guides with current-scope highlight, textobjects, and jumps.
+
+------------------------------------------------------------------------------
+Indent configuration.
+Class ~
+{pint.indent.Config}
+Fields ~
+{char} `(optional)` `(string)` Guide character. Default: "│"
+{hl} `(optional)` `(string)` Guide highlight group. Default: "PintIndent"
+{scope_hl} `(optional)` `(string)` Current-scope guide highlight. Default: "PintIndentScope"
+{scope} `(optional)` `(boolean)` Highlight the current scope's guide. Default: true
+{textobject} `(optional)` `(boolean)` Map ii/ai and [i/]i. Default: true
+{exclude_filetypes} `(optional)` `(string[])` Filetypes to skip
+
+
+==============================================================================
+------------------------------------------------------------------------------
+                                                                    *pint-words*
+pint.words
+
+LSP `documentHighlight` for the symbol under the cursor with reference jumping.
+
+------------------------------------------------------------------------------
+Words configuration.
+Class ~
+{pint.words.Config}
+Fields ~
+{debounce} `(optional)` `(integer)` Milliseconds of cursor rest before highlighting. Default: 200
+{enabled} `(optional)` `(boolean)` Start enabled. Default: true
+
+------------------------------------------------------------------------------
+                                                                    *refs_cache*
+                                  `refs_cache`
+Type ~
+`(table<integer, {line: integer, character: integer}[]>)`
+
+------------------------------------------------------------------------------
+                                                                *M.is_enabled()*
+                                `M.is_enabled`()
+Is the words module currently enabled?
+Return ~
+`(boolean)`
+
+------------------------------------------------------------------------------
+                                                                    *M.enable()*
+                                  `M.enable`()
+Enable reference highlighting.
+
+------------------------------------------------------------------------------
+                                                                   *M.disable()*
+                                 `M.disable`()
+Disable reference highlighting and clear existing highlights.
+
+------------------------------------------------------------------------------
+                                                                      *M.jump()*
+                           `M.jump`({count}, {cycle})
+Jump to a reference of the symbol under the cursor.
+Parameters ~
+{count} `(integer)` 1 for next, -1 for previous
+{cycle} `(optional)` `(boolean)` Wrap around at the ends. Default: true
 
 
  vim:tw=78:ts=8:noet:ft=help:norl:

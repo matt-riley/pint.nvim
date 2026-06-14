@@ -2,6 +2,12 @@
 -- Highlight LSP references for the symbol under the cursor and jump between them.
 local M = {}
 
+--- pint.words
+---
+--- LSP `documentHighlight` for the symbol under the cursor with reference jumping.
+---
+---@tag pint-words
+
 --- Words configuration.
 ---@class pint.words.Config
 ---@field debounce? integer Milliseconds of cursor rest before highlighting. Default: 200
@@ -17,6 +23,16 @@ M.config = vim.deepcopy(defaults)
 
 local enabled = true
 local timer ---@type uv.uv_timer_t|nil
+local ns = vim.api.nvim_create_namespace("pint.words")
+
+---@type table<integer, {line: integer, character: integer}[]>
+local refs_cache = {}
+
+local HL = {
+  [1] = "LspReferenceText",
+  [2] = "LspReferenceRead",
+  [3] = "LspReferenceWrite",
+}
 
 ---@private
 local function supported(buf)
@@ -26,8 +42,83 @@ end
 ---@private
 local function clear(buf)
   if vim.api.nvim_buf_is_valid(buf) then
-    vim.lsp.buf.clear_references(buf)
+    vim.api.nvim_buf_clear_namespace(buf, ns, 0, -1)
+    refs_cache[buf] = nil
   end
+end
+
+---@private
+---@return {line: integer, character: integer}[]
+local function sorted_starts(result)
+  local starts = {}
+  for _, ref in ipairs(result or {}) do
+    table.insert(starts, ref.range.start)
+  end
+  table.sort(starts, function(a, b)
+    if a.line == b.line then
+      return a.character < b.character
+    end
+    return a.line < b.line
+  end)
+  return starts
+end
+
+---@private
+local function apply_highlights(buf, result)
+  vim.api.nvim_buf_clear_namespace(buf, ns, 0, -1)
+  if not result then
+    refs_cache[buf] = {}
+    return
+  end
+  for _, ref in ipairs(result) do
+    local range = ref.range
+    local hl = HL[ref.kind] or HL[1]
+    vim.hl.range(buf, ns, hl, range.start.line, range.start.character, range["end"].line, range["end"].character)
+  end
+  refs_cache[buf] = sorted_starts(result)
+end
+
+---@private
+---@param cb? fun(refs: {line: integer, character: integer}[])
+local function refresh(buf, cb)
+  if not supported(buf) then
+    clear(buf)
+    if cb then
+      cb({})
+    end
+    return
+  end
+  local win = vim.fn.bufwinid(buf)
+  if win <= 0 then
+    win = vim.api.nvim_get_current_win()
+  end
+  local client = vim.lsp.get_clients({ bufnr = buf, method = "textDocument/documentHighlight" })[1]
+  if not client then
+    clear(buf)
+    if cb then
+      cb({})
+    end
+    return
+  end
+  local params = vim.lsp.util.make_position_params(win, client.offset_encoding)
+  client:request("textDocument/documentHighlight", params, function(err, result)
+    vim.schedule(function()
+      if not vim.api.nvim_buf_is_valid(buf) then
+        return
+      end
+      if err then
+        clear(buf)
+        if cb then
+          cb({})
+        end
+        return
+      end
+      apply_highlights(buf, result)
+      if cb then
+        cb(refs_cache[buf] or {})
+      end
+    end)
+  end, buf)
 end
 
 ---@private
@@ -36,7 +127,7 @@ local function highlight()
   if not (enabled and supported(buf)) then
     return
   end
-  vim.lsp.buf.document_highlight()
+  refresh(buf)
 end
 
 --- Is the words module currently enabled?
@@ -58,32 +149,29 @@ function M.disable()
 end
 
 ---@private
----Collect reference ranges in the current buffer, sorted by position.
----@param cb fun(ranges: {line: integer, character: integer}[])
-local function references(cb)
-  local buf = vim.api.nvim_get_current_buf()
-  local win = vim.api.nvim_get_current_win()
-  local client = vim.lsp.get_clients({ bufnr = buf, method = "textDocument/documentHighlight" })[1]
-  if not client then
-    return cb({})
+---@param starts {line: integer, character: integer}[]
+---@param count integer
+---@param cycle boolean
+local function jump_to(starts, count, cycle)
+  if #starts == 0 then
+    return
   end
-  local params = vim.lsp.util.make_position_params(win, client.offset_encoding)
-  client:request("textDocument/documentHighlight", params, function(err, result)
-    if err or not result then
-      return cb({})
+  local cur = vim.api.nvim_win_get_cursor(0)
+  local line, col = cur[1] - 1, cur[2]
+  local current = 1
+  for i, pos in ipairs(starts) do
+    if pos.line < line or (pos.line == line and pos.character <= col) then
+      current = i
     end
-    local starts = {}
-    for _, ref in ipairs(result) do
-      table.insert(starts, ref.range.start)
-    end
-    table.sort(starts, function(a, b)
-      if a.line == b.line then
-        return a.character < b.character
-      end
-      return a.line < b.line
-    end)
-    cb(starts)
-  end, buf)
+  end
+  local target = current + count
+  if cycle then
+    target = ((target - 1) % #starts) + 1
+  elseif target < 1 or target > #starts then
+    return
+  end
+  local pos = starts[target]
+  vim.api.nvim_win_set_cursor(0, { pos.line + 1, pos.character })
 end
 
 --- Jump to a reference of the symbol under the cursor.
@@ -93,31 +181,20 @@ function M.jump(count, cycle)
   if cycle == nil then
     cycle = true
   end
-  references(function(starts)
-    if #starts == 0 then
-      return
-    end
-    local cur = vim.api.nvim_win_get_cursor(0)
-    local line, col = cur[1] - 1, cur[2]
-    local current = 1
-    for i, pos in ipairs(starts) do
-      if pos.line < line or (pos.line == line and pos.character <= col) then
-        current = i
-      end
-    end
-    local target = current + count
-    if cycle then
-      target = ((target - 1) % #starts) + 1
-    elseif target < 1 or target > #starts then
-      return
-    end
-    local pos = starts[target]
-    vim.api.nvim_win_set_cursor(0, { pos.line + 1, pos.character })
+  local buf = vim.api.nvim_get_current_buf()
+  local cached = refs_cache[buf]
+  if cached and #cached > 0 then
+    jump_to(cached, count, cycle)
+    return
+  end
+  refresh(buf, function(starts)
+    jump_to(starts, count, cycle)
   end)
 end
 
 --- Set up autocmds for automatic reference highlighting.
 ---@param opts? pint.words.Config
+---@private
 function M.setup(opts)
   M.config = vim.tbl_deep_extend("force", vim.deepcopy(defaults), opts or {})
   enabled = M.config.enabled

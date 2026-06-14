@@ -49,6 +49,7 @@ require("pint").setup({
   notifier = {
     timeout = 2000,
     top_down = false,
+    max_history = 200,
   },
   statuscolumn = {}, -- sets vim.o.statuscolumn
   indent = {
@@ -75,7 +76,11 @@ vim.keymap.set("n", "[r", function() require("pint.words").jump(-1) end, { desc 
 ```vim
 :Pint dashboard
 :Pint history
+:Pint words-enable
+:Pint words-disable
 ```
+
+Section padding accepts either `{ bottom = 2, top = 1 }` or `{ 2, 1 }` (bottom, top).
 
 ## Development
 

@@ -2,6 +2,12 @@
 -- Startup dashboard: header, keyed actions, recent files, custom sections.
 local M = {}
 
+--- pint.dashboard
+---
+--- Startup dashboard with header, keyed actions, recent files, and custom sections.
+---
+---@tag pint-dashboard
+
 ---@class pint.dashboard.Key
 ---@field icon? string Icon (usually a Nerd Font glyph)
 ---@field key string Single key that triggers the action
@@ -19,7 +25,7 @@ local M = {}
 ---@field icon? string
 ---@field items fun(): pint.dashboard.Item[]
 ---@field gap? integer Empty lines between child items
----@field padding? integer|{bottom:integer, top:integer} Padding around the section
+---@field padding? integer|{bottom?:integer, top?:integer, [1]?:integer, [2]?:integer} Padding around the section
 ---@field indent? integer Spaces to indent child items
 ---@field enabled? boolean|fun():boolean When false, the section is hidden
 
@@ -53,6 +59,28 @@ local defaults = {
 }
 
 M.config = vim.deepcopy(defaults)
+
+---@private
+local NS = vim.api.nvim_create_namespace("pint.dashboard")
+
+---@private
+---@param padding integer|{bottom?:integer, top?:integer, [1]?:integer, [2]?:integer}|nil
+---@return integer top, integer bottom
+local function section_padding(padding)
+  local pad_top, pad_bottom = 0, 0
+  if type(padding) == "table" then
+    if padding.top or padding.bottom then
+      pad_top = padding.top or 0
+      pad_bottom = padding.bottom or 0
+    else
+      pad_bottom = padding[1] or 0
+      pad_top = padding[2] or 0
+    end
+  elseif type(padding) == "number" then
+    pad_bottom = padding
+  end
+  return pad_top, pad_bottom
+end
 
 ---@private
 local function recent_files()
@@ -153,7 +181,9 @@ end
 ---@return integer|nil
 ---@private
 local function nearest_action(rows, lnum, dir)
-  for i = lnum, dir == 1 and #rows or 1, dir do
+  local start = dir == 1 and lnum or lnum - 1
+  local stop = dir == 1 and #rows or 1
+  for i = start, stop, dir do
     if rows[i] and rows[i].action then
       return i
     end
@@ -165,6 +195,210 @@ end
 ---@field text string|pint.dashboard.Seg[]
 ---@field action? string|fun()
 ---@field key? string
+
+---@private
+---@return pint.dashboard.Row[]
+local function build_rows(win)
+  local max_width = M.config.width or (vim.api.nvim_win_get_width(win) - 2)
+  local autokeys = M.config.autokeys:gsub("[hjklq]", "") ---@type string
+  local used_keys = {} ---@type table<string, boolean>
+  ---@type pint.dashboard.Row[]
+  local rows = {}
+
+  local function blank()
+    table.insert(rows, { text = "" })
+  end
+
+  local header_lines = type(M.config.header) == "string"
+      and vim.split(M.config.header, "\n", { plain = true })
+      or M.config.header
+  for _, line in ipairs(header_lines) do
+    table.insert(rows, { text = { { line, hl = "PintDashboardHeader" } } })
+  end
+  blank()
+
+  for _, k in ipairs(M.config.keys) do
+    local kenabled = k.enabled
+    if type(kenabled) == "function" then
+      kenabled = kenabled()
+    end
+    if kenabled ~= false then
+      if not k.hidden then
+        table.insert(rows, {
+          text = {
+            { k.icon or "•", hl = "PintDashboardIcon" },
+            { " " .. k.desc, hl = "PintDashboardDesc" },
+            { "  [" .. k.key .. "]", hl = "PintDashboardKey" },
+          },
+          action = k.action,
+          key = k.key,
+        })
+      else
+        table.insert(rows, { text = "", action = k.action, key = k.key })
+      end
+    end
+    if k.key then
+      used_keys[k.key] = true
+    end
+  end
+
+  local sections = {}
+  if M.config.recent.enabled then
+    table.insert(sections, {
+      title = "Recent files",
+      icon = "",
+      items = function()
+        local items = {}
+        for _, file in ipairs(recent_files()) do
+          local path_segs = format_path(file, max_width - 6)
+          items[#items + 1] = {
+            label = path_segs,
+            action = function()
+              vim.cmd.edit(vim.fn.fnameescape(file))
+            end,
+          }
+        end
+        return items
+      end,
+    })
+  end
+  vim.list_extend(sections, M.config.sections)
+
+  local autokey_idx = 1
+  for _, section in ipairs(sections) do
+    local senabled = section.enabled
+    if type(senabled) == "function" then
+      senabled = senabled()
+    end
+    if senabled ~= false then
+      local items = section.items()
+      if #items > 0 then
+        local pad_top, pad_bottom = section_padding(section.padding)
+        for _ = 1, pad_top do
+          blank()
+        end
+
+        table.insert(rows, {
+          text = {
+            { (section.icon or "") .. section.title, hl = "PintDashboardTitle" },
+          },
+        })
+
+        local indent = (" "):rep(section.indent or 0)
+        for itemidx, item in ipairs(items) do
+          local akey = nil
+          while autokey_idx <= #autokeys and used_keys[autokeys:sub(autokey_idx, autokey_idx)] do
+            autokey_idx = autokey_idx + 1
+          end
+          if autokey_idx <= #autokeys then
+            akey = autokeys:sub(autokey_idx, autokey_idx)
+            autokey_idx = autokey_idx + 1
+          end
+
+          local item_text ---@type pint.dashboard.Seg[]
+          if type(item.label) == "string" then
+            local label = vim.fn.fnamemodify(item.label, ":~:.")
+            item_text = { { indent .. label, hl = "PintDashboardItem" } }
+          else
+            ---@diagnostic disable-next-line: assign-type-mismatch
+            item_text = { { indent, hl = "PintDashboardItem" } }
+            vim.list_extend(item_text, item.label)
+            for _, seg in ipairs(item_text) do
+              if not seg.hl then
+                seg.hl = "PintDashboardItem"
+              end
+            end
+          end
+          if akey then
+            table.insert(item_text, { "  [" .. akey .. "]", hl = "PintDashboardKey" })
+          end
+
+          table.insert(rows, {
+            text = item_text,
+            action = item.action,
+            key = akey,
+          })
+
+          local gap = section.gap or 0
+          if gap > 0 and itemidx < #items then
+            for _ = 1, gap do
+              blank()
+            end
+          end
+        end
+
+        for _ = 1, pad_bottom do
+          blank()
+        end
+      end
+    end
+  end
+
+  local ok, lazy = pcall(require, "lazy")
+  if ok then
+    local stats = lazy.stats()
+    blank()
+    table.insert(rows, {
+      text = {
+        { "⚡ Neovim loaded ", hl = "PintDashboardFooter" },
+        { stats.loaded .. "/" .. stats.count, hl = "PintDashboardSpecial" },
+        { " plugins in ", hl = "PintDashboardFooter" },
+        { ("%.0fms"):format(stats.startuptime), hl = "PintDashboardSpecial" },
+      },
+    })
+  end
+
+  return rows
+end
+
+---@private
+---@return integer pad_left, integer pad_top
+local function paint_dashboard(buf, win, rows)
+  local max_width = M.config.width or (vim.api.nvim_win_get_width(win) - 2)
+  local content_width = vim.iter(rows):fold(0, function(w, row)
+    local rw = type(row.text) == "string" and vim.api.nvim_strwidth(row.text) or segs_width(row.text)
+    return math.max(w, rw)
+  end)
+  content_width = math.min(content_width, max_width)
+
+  local win_width = vim.api.nvim_win_get_width(win)
+  local win_height = vim.api.nvim_win_get_height(win)
+  local pad_left = math.max(math.floor((win_width - content_width) / 2), 0)
+  local pad_top = math.max(math.floor((win_height - #rows) / 2), 0)
+
+  vim.bo[buf].modifiable = true
+  local lines = {}
+  for _ = 1, pad_top do
+    table.insert(lines, "")
+  end
+  for _, row in ipairs(rows) do
+    if type(row.text) == "string" then
+      table.insert(lines, row.text == "" and "" or ((" "):rep(pad_left) .. row.text))
+    else
+      table.insert(lines, "")
+    end
+  end
+  vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+
+  vim.api.nvim_buf_clear_namespace(buf, NS, 0, -1)
+  for i, row in ipairs(rows) do
+    local lnum = pad_top + i - 1
+    if type(row.text) ~= "string" then
+      local rendered, marks = build_segs_line(row.text, pad_left)
+      vim.api.nvim_buf_set_lines(buf, lnum, lnum + 1, false, { rendered })
+      for _, m in ipairs(marks) do
+        vim.api.nvim_buf_set_extmark(buf, NS, lnum, m.col, {
+          hl_group = m.hl,
+          end_col = m.end_col,
+          priority = 1,
+        })
+      end
+    end
+  end
+  vim.bo[buf].modifiable = false
+
+  return pad_left, pad_top
+end
 
 --- Open the dashboard in the current window.
 function M.open()
@@ -243,260 +477,49 @@ function M.open()
     end,
   })
 
-  ------------------------------------------------------------------
-  -- Build the row list
-  ------------------------------------------------------------------
-  local max_width = M.config.width or (vim.api.nvim_win_get_width(win) - 2)
-  local autokeys = M.config.autokeys:gsub("[hjklq]", "") ---@type string
-  local used_keys = {} ---@type table<string, boolean>
-  local ns = vim.api.nvim_create_namespace("pint.dashboard")
+  ---@type {rows: pint.dashboard.Row[], pad_left: integer, pad_top: integer}
+  local ctx = { rows = build_rows(win), pad_left = 0, pad_top = 0 }
 
-  ---@type pint.dashboard.Row[]
-  local rows = {}
-
-  local function blank()
-    table.insert(rows, { text = "" })
-  end
-
-  -- Header
-  local header_lines = type(M.config.header) == "string" and vim.split(M.config.header, "\n", { plain = true }) or M.config.header
-  for _, line in ipairs(header_lines) do
-    table.insert(rows, { text = { { line, hl = "PintDashboardHeader" } } })
-  end
-  blank()
-
-  -- Keys section
-  for _, k in ipairs(M.config.keys) do
-    local enabled = k.enabled
-    if type(enabled) == "function" then
-      enabled = enabled()
-    end
-    if enabled ~= false then
-      if not k.hidden then
-        table.insert(rows, {
-          text = {
-            { k.icon or "•", hl = "PintDashboardIcon" },
-            { " " .. k.desc, hl = "PintDashboardDesc" },
-            { "  [" .. k.key .. "]", hl = "PintDashboardKey" },
-          },
-          action = k.action,
-          key = k.key,
-        })
-      else
-        -- Hidden: add a phantom row to bind the keymap without rendering text.
-        table.insert(rows, { text = "", action = k.action, key = k.key })
-      end
-    end
-    if k.key then
-      used_keys[k.key] = true
-    end
-  end
-
-  -- Collect sections
-  local sections = {}
-  if M.config.recent.enabled then
-    table.insert(sections, {
-      title = "Recent files",
-      icon = "",
-      items = function()
-        local items = {}
-        for _, file in ipairs(recent_files()) do
-          local path_segs = format_path(file, max_width - 6) -- "  " indent + "  [n]" key
-          items[#items + 1] = {
-            label = path_segs,
-            action = function()
-              vim.cmd.edit(vim.fn.fnameescape(file))
-            end,
-          }
-        end
-        return items
-      end,
-    })
-  end
-  vim.list_extend(sections, M.config.sections)
-
-  -- Render sections with gap/padding/indent support
-  local autokey_idx = 1
-  for _, section in ipairs(sections) do
-    local senabled = section.enabled
-    if type(senabled) == "function" then
-      senabled = senabled()
-    end
-    if senabled ~= false then
-      local items = section.items()
-      if #items > 0 then
-        -- Top padding before the section title
-        local padding = section.padding
-        local pad_top, pad_bottom = 0, 0
-        if type(padding) == "table" then
-          pad_top, pad_bottom = padding[2] or 0, padding[1] or 0
-        else
-          pad_bottom = padding or 0
-        end
-        for _ = 1, pad_top do
-          blank()
-        end
-
-        table.insert(rows, {
-          text = {
-            { (section.icon or "") .. section.title, hl = "PintDashboardTitle" },
-          },
-        })
-
-        local indent = (" "):rep(section.indent or 0)
-        for itemidx, item in ipairs(items) do
-          -- Auto-assign a key from the autokeys sequence
-          local akey = nil
-          while autokey_idx <= #autokeys and used_keys[autokeys:sub(autokey_idx, autokey_idx)] do
-            autokey_idx = autokey_idx + 1
-          end
-          if autokey_idx <= #autokeys then
-            akey = autokeys:sub(autokey_idx, autokey_idx)
-            autokey_idx = autokey_idx + 1
-          end
-
-          -- Build the item text
-          local item_text ---@type pint.dashboard.Seg[]
-          if type(item.label) == "string" then
-            local label = vim.fn.fnamemodify(item.label, ":~:.")
-            item_text = { { indent .. label, hl = "PintDashboardItem" } }
-          else
-            -- label is already segments (from format_path)
-            ---@diagnostic disable-next-line: assign-type-mismatch
-            item_text = { { indent, hl = "PintDashboardItem" } }
-            vim.list_extend(item_text, item.label)
-            -- Override segment highlights for item styling if no per-segment hl
-            for _, seg in ipairs(item_text) do
-              if not seg.hl then
-                seg.hl = "PintDashboardItem"
-              end
-            end
-          end
-          if akey then
-            table.insert(item_text, { "  [" .. akey .. "]", hl = "PintDashboardKey" })
-          end
-
-          table.insert(rows, {
-            text = item_text,
-            action = item.action,
-            key = akey,
-          })
-
-          -- Gap between items (but not after the last one)
-          local gap = section.gap or 0
-          if gap > 0 and itemidx < #items then
-            for _ = 1, gap do
-              blank()
-            end
-          end
-        end
-
-        -- Bottom padding
-        for _ = 1, pad_bottom do
-          blank()
-        end
+  local function bind_row_keys()
+    for _, row in ipairs(ctx.rows) do
+      if row.key then
+        vim.keymap.set("n", row.key, function()
+          run(row.action)
+        end, { buffer = buf, nowait = true, desc = "pint: dashboard action" })
       end
     end
   end
 
-  -- Footer: lazy.nvim startup stats with multi-color segments
-  local ok, lazy = pcall(require, "lazy")
-  if ok then
-    local stats = lazy.stats()
-    blank()
-    table.insert(rows, {
-      text = {
-        { "⚡ Neovim loaded ", hl = "PintDashboardFooter" },
-        { stats.loaded .. "/" .. stats.count, hl = "PintDashboardSpecial" },
-        { " plugins in ", hl = "PintDashboardFooter" },
-        { ("%.0fms"):format(stats.startuptime), hl = "PintDashboardSpecial" },
-      },
-    })
+  local function refresh()
+    local cursor = vim.api.nvim_win_get_cursor(win)
+    ctx.rows = build_rows(win)
+    ctx.pad_left, ctx.pad_top = paint_dashboard(buf, win, ctx.rows)
+    bind_row_keys()
+    local row_idx = math.min(cursor[1], vim.api.nvim_buf_line_count(buf))
+    vim.api.nvim_win_set_cursor(win, { row_idx, ctx.pad_left })
   end
 
-  ------------------------------------------------------------------
-  -- Layout: measure, centre, render
-  ------------------------------------------------------------------
-  -- Measure the widest row.
-  local content_width = vim.iter(rows):fold(0, function(w, row)
-    local rw = type(row.text) == "string"
-        and vim.api.nvim_strwidth(row.text)
-        or segs_width(row.text)
-    return math.max(w, rw)
-  end)
-  content_width = math.min(content_width, max_width)
-
-  local win_width = vim.api.nvim_win_get_width(win)
-  local win_height = vim.api.nvim_win_get_height(win)
-  local pad_left = math.max(math.floor((win_width - content_width) / 2), 0)
-  local pad_top = math.max(math.floor((win_height - #rows) / 2), 0)
-
-  -- Build buffer lines
-  bo.modifiable = true
-  local lines = {}
-  for _ = 1, pad_top do
-    table.insert(lines, "")
-  end
-  for _, row in ipairs(rows) do
-    if type(row.text) == "string" then
-      table.insert(lines, row.text == "" and "" or ((" "):rep(pad_left) .. row.text))
-    else
-      -- Placeholder line that will be overwritten by render_segs
-      table.insert(lines, "")
-    end
-  end
-  vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
-
-  -- Apply highlights
-  vim.api.nvim_buf_clear_namespace(buf, ns, 0, -1)
-  for i, row in ipairs(rows) do
-    local lnum = pad_top + i - 1
-    if type(row.text) == "string" then
-      -- Plain string: highlight the whole line (backward compat + headers)
-      if row.text ~= "" then
-        -- The hl for plain strings comes from the key/section rendering above,
-        -- which is embedded in segments already. For plain "" blanks, no hl.
-      end
-    else
-      -- Segments: build line and extmark positions, set line first, then extmark
-      local rendered, marks = build_segs_line(row.text, pad_left)
-      vim.api.nvim_buf_set_lines(buf, lnum, lnum + 1, false, { rendered })
-      for _, m in ipairs(marks) do
-        vim.api.nvim_buf_set_extmark(buf, ns, lnum, m.col, {
-          hl_group = m.hl,
-          end_col = m.end_col,
-          priority = 1,
-        })
-      end
-    end
-  end
-  bo.modifiable = false
+  ctx.pad_left, ctx.pad_top = paint_dashboard(buf, win, ctx.rows)
 
   -- Keymaps and action tracking
-  local action_rows = vim.iter(ipairs(rows)):filter(function(_, row)
+  local action_rows = vim.iter(ipairs(ctx.rows)):filter(function(_, row)
     return row.action ~= nil
   end):map(function(i, _)
-    return pad_top + i
+    return ctx.pad_top + i
   end):totable()
-  for i, row in ipairs(rows) do
-    if row.key then
-      vim.keymap.set("n", row.key, function()
-        run(row.action)
-      end, { buffer = buf, nowait = true, desc = "pint: " .. (type(row.text) == "string" and row.text or "") })
-    end
-  end
+  bind_row_keys()
 
   -- Set initial cursor on the first actionable row
   if #action_rows > 0 then
-    vim.api.nvim_win_set_cursor(win, { action_rows[1], pad_left })
+    vim.api.nvim_win_set_cursor(win, { action_rows[1], ctx.pad_left })
   else
-    vim.api.nvim_win_set_cursor(win, { pad_top + 1, pad_left })
+    vim.api.nvim_win_set_cursor(win, { ctx.pad_top + 1, ctx.pad_left })
   end
 
   -- <CR> activates the row under the cursor
   vim.keymap.set("n", "<cr>", function()
-    local lnum = vim.api.nvim_win_get_cursor(win)[1] - pad_top
-    local row = rows[lnum]
+    local lnum = vim.api.nvim_win_get_cursor(win)[1] - ctx.pad_top
+    local row = ctx.rows[lnum]
     if row and row.action then
       restore_chrome()
       run(row.action)
@@ -513,34 +536,32 @@ function M.open()
     buffer = buf,
     group = augroup,
     callback = function()
-      local lnum = vim.api.nvim_win_get_cursor(win)[1] - pad_top
-      local row = rows[lnum]
+      local lnum = vim.api.nvim_win_get_cursor(win)[1] - ctx.pad_top
+      local row = ctx.rows[lnum]
       if not row or not row.action then
-        local target = nearest_action(rows, lnum, 1) or nearest_action(rows, lnum, -1)
+        local target = nearest_action(ctx.rows, lnum, 1) or nearest_action(ctx.rows, lnum, -1)
         if target then
-          vim.api.nvim_win_set_cursor(win, { pad_top + target, pad_left })
+          vim.api.nvim_win_set_cursor(win, { ctx.pad_top + target, ctx.pad_left })
         end
       end
     end,
   })
 
-  -- Re-render on resize
+  -- Re-render on resize without recreating the buffer
   vim.api.nvim_create_autocmd({ "WinResized", "VimResized" }, {
     group = augroup,
     callback = vim.schedule_wrap(function()
       if not vim.api.nvim_buf_is_valid(buf) then
         return
       end
-      -- Suppress chrome restore during the swap so we don't flash tabline.
-      vim.b[buf].pint_dashboard_chrome = nil
-      pcall(vim.api.nvim_buf_delete, buf, { force = true })
-      M.open()
+      refresh()
     end),
   })
 end
 
 --- Configure the dashboard and open it on argument-less startup.
 ---@param opts? pint.dashboard.Config
+---@private
 function M.setup(opts)
   M.config = vim.tbl_deep_extend("force", vim.deepcopy(defaults), opts or {})
 

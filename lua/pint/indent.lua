@@ -3,6 +3,12 @@
 -- textobjects (ii/ai) and edge jumps ([i/]i).
 local M = {}
 
+--- pint.indent
+---
+--- Static indent guides with current-scope highlight, textobjects, and jumps.
+---
+---@tag pint-indent
+
 --- Indent configuration.
 ---@class pint.indent.Config
 ---@field char? string Guide character. Default: "│"
@@ -119,6 +125,7 @@ end
 
 --- Select or operate on the current indent scope.
 ---@param outer boolean Include the line above (and trailing line for `ai`)
+---@private
 function M.textobject(outer)
   local top, bottom = scope_range(vim.api.nvim_get_current_win())
   if top == 0 then
@@ -139,6 +146,7 @@ end
 
 --- Jump to the top or bottom edge of the current indent scope.
 ---@param bottom boolean Jump to the bottom edge instead of the top
+---@private
 function M.jump(bottom)
   local top, bot = scope_range(vim.api.nvim_get_current_win())
   if top == 0 then
@@ -150,6 +158,7 @@ end
 
 --- Enable indent guides.
 ---@param opts? pint.indent.Config
+---@private
 function M.setup(opts)
   M.config = vim.tbl_deep_extend("force", vim.deepcopy(defaults), opts or {})
 
@@ -159,6 +168,13 @@ function M.setup(opts)
   vim.api.nvim_set_decoration_provider(ns, {
     on_win = on_win,
     on_line = on_line,
+  })
+
+  vim.api.nvim_create_autocmd("WinClosed", {
+    group = group,
+    callback = function(ev)
+      scopes[tonumber(ev.match)] = nil
+    end,
   })
 
   if M.config.textobject then
