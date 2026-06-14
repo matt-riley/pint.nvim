@@ -1,0 +1,28 @@
+[tools]
+# Neovim 0.13 is nightly.
+neovim = "nightly"
+stylua = "latest"
+
+[tasks.install]
+run = """
+mkdir -p .ci
+if [ ! -d .ci/mini.nvim ]; then
+  git clone --branch v0.17.0 --depth 1 https://github.com/echasnovski/mini.nvim .ci/mini.nvim
+fi
+if [ "$(uname -s)" = "Linux" ]; then
+  sudo apt-get update
+  sudo apt-get install -y lua-check
+fi
+"""
+
+[tasks.test]
+run = "make test"
+
+[tasks.lint]
+run = "make lint"
+
+[tasks.fmt]
+run = "make format-check"
+
+[tasks.docs]
+run = "make docs"

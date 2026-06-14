@@ -8,38 +8,34 @@ on:
       - "lua/**"
       - "plugin/**"
       - "Makefile"
+      - ".mise.toml"
       - ".github/workflows/docs.yml"
   workflow_dispatch:
 
 permissions:
   contents: write
 
-env:
-  # Neovim 0.13 is nightly.
-  NEOVIM_REF: nightly
-
 jobs:
   docs:
     runs-on: ubuntu-latest
+    env:
+      MISE_EXPERIMENTAL: true
+      MINI_PATH: ${{ github.workspace }}/.ci/mini.nvim
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
-      - name: Install Neovim
-        run: |
-          curl -fsSL "https://github.com/neovim/neovim/releases/download/${NEOVIM_REF}/nvim-linux-x86_64.tar.gz" -o /tmp/nvim.tar.gz
-          tar xzf /tmp/nvim.tar.gz -C /tmp
-          nvim_dir="$(find /tmp -maxdepth 1 -type d -name 'nvim-*' | head -1)"
-          echo "${nvim_dir}/bin" >> "$GITHUB_PATH"
-          "${nvim_dir}/bin/nvim" --version
+      - name: Install mise
+        uses: jdx/mise-action@5228313ee0372e111a38da051671ca30fc5a96db # v3
 
-      - name: Fetch mini.nvim
-        run: git clone --depth 1 https://github.com/echasnovski/mini.nvim "${GITHUB_WORKSPACE}/.ci/mini.nvim"
+      - name: Install configured tools
+        run: mise install
+
+      - name: Run install task
+        run: mise run install
 
       - name: Generate docs
-        env:
-          MINI_PATH: ${{ github.workspace }}/.ci/mini.nvim
-        run: make docs
+        run: mise run docs
 
       - name: Commit docs
         uses: stefanzweifel/git-auto-commit-action@04702edda442b2e678b25b537cec683a1493fcb9 # v7

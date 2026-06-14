@@ -4,42 +4,11 @@ on:
   push:
   pull_request:
 
-env:
-  # Neovim 0.13 is nightly.
-  NEOVIM_REF: nightly
-  MINI_VERSION: v0.17.0
-
 jobs:
   tests:
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    permissions:
-      contents: read
-    steps:
-      - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-
-      - name: Install Neovim
-        run: |
-          curl -fsSL "https://github.com/neovim/neovim/releases/download/${NEOVIM_REF}/nvim-linux-x86_64.tar.gz" -o /tmp/nvim.tar.gz
-          tar xzf /tmp/nvim.tar.gz -C /tmp
-          nvim_dir="$(find /tmp -maxdepth 1 -type d -name 'nvim-*' | head -1)"
-          echo "${nvim_dir}/bin" >> "$GITHUB_PATH"
-          "${nvim_dir}/bin/nvim" --version
-
-      - name: Fetch mini.nvim
-        run: git clone --branch "${MINI_VERSION}" --depth 1 https://github.com/echasnovski/mini.nvim "${GITHUB_WORKSPACE}/.ci/mini.nvim"
-
-      - name: Run tests
-        env:
-          MINI_PATH: ${{ github.workspace }}/.ci/mini.nvim
-        run: nvim --headless -u tests/minimal_init.lua -c "lua MiniTest.run({})" -c "qa"
-
-      - name: Summary
-        if: ${{ always() }}
-        run: |
-          {
-            echo "### Neovim Tests summary"
-            echo "- neovim-ref: \`${NEOVIM_REF}\`"
-            echo "- mini-version: \`${MINI_VERSION}\`"
-          } >> "$GITHUB_STEP_SUMMARY"
+    uses: matt-riley/matt-riley-ci/.github/workflows/ci.yml@9558d9e0b4cf7ce0bd0786f7300f2aae0eab0683
+    with:
+      install: true
+      test: true
+      task-env: |
+        MINI_PATH=${{ github.workspace }}/.ci/mini.nvim

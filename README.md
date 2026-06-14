@@ -84,34 +84,46 @@ Section padding accepts either `{ bottom = 2, top = 1 }` or `{ 2, 1 }` (bottom, 
 
 ## Development
 
-### Testing
-
-Tests use [mini.test](https://github.com/echasnovski/mini.nvim/blob/main/readmes/mini-test.md). Run them with:
+CI uses [mise](https://mise.jdx.dev/) via the shared [matt-riley-ci](https://github.com/matt-riley/matt-riley-ci) universal workflow. Local setup:
 
 ```bash
-make test
+mise install
+mise run install   # clones mini.nvim and installs luacheck on Linux
+mise run test
+mise run lint
+mise run fmt
+mise run docs
+```
+
+`make` targets still work if you already have Neovim nightly, stylua, and luacheck on your `PATH`.
+
+### Testing
+
+Tests use [mini.test](https://github.com/echasnovski/mini.nvim/blob/main/readmes/mini-test.md):
+
+```bash
+MINI_PATH="$(pwd)/.ci/mini.nvim" mise run test
 ```
 
 ### Linting
 
 ```bash
-make lint
+mise run lint
 ```
 
 ### Formatting
 
 ```bash
-make format        # auto-format
-make format-check  # check only (CI uses this)
+mise run fmt       # check only (CI uses this)
+make format        # auto-format locally
 ```
 
 ### Documentation (`:help`)
 
-Plugin help is generated from Lua annotations in `lua/pint/init.lua` using
-[mini.doc](https://github.com/nvim-mini/mini.doc):
+Plugin help is generated from Lua annotations using [mini.doc](https://github.com/nvim-mini/mini.doc):
 
 ```bash
-make docs
+MINI_PATH="$(pwd)/.ci/mini.nvim" mise run docs
 ```
 
 ## License
