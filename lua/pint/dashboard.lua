@@ -123,30 +123,26 @@ local function segs_width(segs)
   end)
 end
 
---- Render segments into a line string and a list of extmarks.
+--- Build the line string and collect extmark positions for segments.
+--- Extmarks must be applied *after* the line is set in the buffer.
 ---@param segs pint.dashboard.Seg[]
----@param line_num integer 0-indexed line in the buffer
 ---@param col_start integer column where the segments begin
----@param buf integer
----@param ns integer
 ---@return string line
+---@return {row:integer, col:integer, hl:string, end_col:integer}[]
 ---@private
-local function render_segs(segs, line_num, col_start, buf, ns)
+local function build_segs_line(segs, col_start)
   local parts = {}
+  local marks = {}
   local col = col_start
   for _, s in ipairs(segs) do
     local str, hl = s[1], s.hl
     table.insert(parts, str)
     if hl then
-      vim.api.nvim_buf_set_extmark(buf, ns, line_num, col, {
-        hl_group = hl,
-        end_col = col + #str,
-        priority = 1,
-      })
+      marks[#marks + 1] = { col = col, hl = hl, end_col = col + #str }
     end
     col = col + #str
   end
-  return (" "):rep(col_start) .. table.concat(parts, "")
+  return (" "):rep(col_start) .. table.concat(parts, ""), marks
 end
 
 --- Find the next row that has an action, starting from `lnum` and
@@ -275,16 +271,21 @@ function M.open()
     if type(enabled) == "function" then
       enabled = enabled()
     end
-    if enabled ~= false and not k.hidden then
-      table.insert(rows, {
-        text = {
-          { k.icon or "•", hl = "PintDashboardIcon" },
-          { " " .. k.desc, hl = "PintDashboardDesc" },
-          { "  [" .. k.key .. "]", hl = "PintDashboardKey" },
-        },
-        action = k.action,
-        key = k.key,
-      })
+    if enabled ~= false then
+      if not k.hidden then
+        table.insert(rows, {
+          text = {
+            { k.icon or "•", hl = "PintDashboardIcon" },
+            { " " .. k.desc, hl = "PintDashboardDesc" },
+            { "  [" .. k.key .. "]", hl = "PintDashboardKey" },
+          },
+          action = k.action,
+          key = k.key,
+        })
+      else
+        -- Hidden: add a phantom row to bind the keymap without rendering text.
+        table.insert(rows, { text = "", action = k.action, key = k.key })
+      end
     end
     if k.key then
       used_keys[k.key] = true
@@ -457,9 +458,16 @@ function M.open()
         -- which is embedded in segments already. For plain "" blanks, no hl.
       end
     else
-      -- Segments: render with per-segment extmark highlighting
-      local rendered = render_segs(row.text, lnum, pad_left, buf, ns)
+      -- Segments: build line and extmark positions, set line first, then extmark
+      local rendered, marks = build_segs_line(row.text, pad_left)
       vim.api.nvim_buf_set_lines(buf, lnum, lnum + 1, false, { rendered })
+      for _, m in ipairs(marks) do
+        vim.api.nvim_buf_set_extmark(buf, ns, lnum, m.col, {
+          hl_group = m.hl,
+          end_col = m.end_col,
+          priority = 1,
+        })
+      end
     end
   end
   bo.modifiable = false
