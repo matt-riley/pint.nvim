@@ -1,7 +1,8 @@
                                                                           *pint*
 pint.nvim
 
-Version: 0.1.0
+Version: 0.1.1
+
 
 A small measure of UI: dashboard, notifier, statuscolumn, indent guides,
 and LSP reference words. Scoped to exactly what one config needs.
@@ -92,6 +93,8 @@ Fields ~
 {text} `(string|(string|{ [1]: string, hl?: string })[])`
 {action} `(optional)` `(string|fun())`
 {key} `(optional)` `(string)`
+{align} `(optional)` "`(center)`"
+{footer} `(optional)` `(boolean)`
 
 ------------------------------------------------------------------------------
                                                                       *M.open()*
