@@ -465,6 +465,47 @@ dashboard_set["open() sets correct buffer options"] = function()
   MiniTest.expect.equality(vim.bo.swapfile, false)
 end
 
+dashboard_set["open() restores window chrome after key action"] = function()
+  vim.cmd("new")
+  vim.o.number = true
+  vim.wo.number = true
+  vim.wo.signcolumn = "yes"
+  local statuscolumn = "%!v:lua.require'pint.statuscolumn'.get()"
+  vim.o.statuscolumn = statuscolumn
+  dashboard.setup({
+    autostart = false,
+    header = {},
+    recent = { enabled = false },
+    keys = {
+      { desc = "New buffer", key = "z", action = ":enew" },
+    },
+  })
+  dashboard.open()
+  vim.cmd("normal z")
+  MiniTest.expect.equality(vim.wo.number, true, "line numbers should return after leaving dashboard")
+  MiniTest.expect.equality(vim.wo.signcolumn, "yes", "sign column should return after leaving dashboard")
+  MiniTest.expect.equality(vim.wo.statuscolumn, statuscolumn, "statuscolumn should return after leaving dashboard")
+  pcall(vim.cmd, "bd!")
+end
+
+dashboard_set["open() restores window chrome after :edit"] = function()
+  vim.cmd("new")
+  vim.o.number = true
+  vim.wo.number = true
+  vim.wo.signcolumn = "yes"
+  dashboard.setup({
+    autostart = false,
+    header = {},
+    recent = { enabled = false },
+    keys = {},
+  })
+  dashboard.open()
+  vim.cmd("enew")
+  MiniTest.expect.equality(vim.wo.number, true, "line numbers should return after :edit leaves dashboard")
+  MiniTest.expect.equality(vim.wo.signcolumn, "yes", "sign column should return after :edit leaves dashboard")
+  pcall(vim.cmd, "bd!")
+end
+
 dashboard_set["open() sets correct window options"] = function()
   dashboard.setup({ autostart = false })
   dashboard.open()
@@ -517,8 +558,8 @@ dashboard_set["open() truncates long recent file paths"] = function()
 end
 
 dashboard_set["open() recent files use cwd-relative paths when cwd=true"] = function()
-  local file = vim.fn.getcwd() .. "/lua/pint/dashboard.lua"
-  vim.fn.mkdir(vim.fn.fnamemodify(file, ":h"), "p")
+  local rel = ".pint-test-" .. vim.fn.tempname():match("([^/]+)$") .. ".lua"
+  local file = vim.fn.getcwd() .. "/" .. rel
   vim.fn.writefile({ "x" }, file)
   vim.v.oldfiles = { file }
   dashboard.setup({
@@ -531,7 +572,7 @@ dashboard_set["open() recent files use cwd-relative paths when cwd=true"] = func
   local found_relative = false
   local found_home = false
   for _, line in ipairs(lines) do
-    if line:find("lua/pint/dashboard.lua", 1, true) then
+    if line:find(rel, 1, true) then
       found_relative = true
     end
     if line:find(vim.fn.expand("~"), 1, true) then

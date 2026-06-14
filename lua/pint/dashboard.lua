@@ -649,6 +649,21 @@ function M.open()
   local win = vim.api.nvim_get_current_win()
   vim.api.nvim_win_set_buf(win, buf)
 
+  -- Capture window chrome before ftplugin and dashboard styling change it.
+  local wo = vim.wo[win]
+  local saved_win = {
+    number = wo.number,
+    relativenumber = wo.relativenumber,
+    signcolumn = wo.signcolumn,
+    statuscolumn = wo.statuscolumn,
+    statusline = wo.statusline,
+    winbar = wo.winbar,
+    foldcolumn = wo.foldcolumn,
+    cursorline = wo.cursorline,
+    cursorlineopt = wo.cursorlineopt,
+    winhighlight = wo.winhighlight,
+  }
+
   -- Buffer hygiene
   local bo = vim.bo[buf]
   bo.buftype = "nofile"
@@ -659,7 +674,6 @@ function M.open()
   bo.filetype = "pint_dashboard"
 
   -- Window hygiene
-  local wo = vim.wo[win]
   wo.number = false
   wo.relativenumber = false
   wo.cursorline = true
@@ -686,7 +700,11 @@ function M.open()
   )
 
   -- Suppress tabline / statusline for a cleaner startup look.
-  local saved = { showtabline = vim.o.showtabline, laststatus = vim.o.laststatus }
+  local saved = {
+    showtabline = vim.o.showtabline,
+    laststatus = vim.o.laststatus,
+    win = saved_win,
+  }
   if vim.o.showtabline ~= 0 then
     vim.o.showtabline = 0
   end
@@ -695,11 +713,16 @@ function M.open()
   end
   -- Store saved state on the buffer so restore_chrome can be idempotent.
   vim.b[buf].pint_dashboard_chrome = saved
+  local restored = false
   local function restore_chrome()
+    if restored then
+      return
+    end
     local s = vim.b[buf].pint_dashboard_chrome
     if not s then
       return
     end
+    restored = true
     vim.b[buf].pint_dashboard_chrome = nil
     if vim.o.showtabline == 0 and s.showtabline ~= 0 then
       vim.o.showtabline = s.showtabline
@@ -707,9 +730,22 @@ function M.open()
     if vim.o.laststatus == 0 and s.laststatus ~= 0 then
       vim.o.laststatus = s.laststatus
     end
+    if vim.api.nvim_win_is_valid(win) and s.win then
+      local w = vim.wo[win]
+      w.number = s.win.number
+      w.relativenumber = s.win.relativenumber
+      w.signcolumn = s.win.signcolumn
+      w.statuscolumn = s.win.statuscolumn ~= "" and s.win.statuscolumn or vim.o.statuscolumn
+      w.statusline = s.win.statusline
+      w.winbar = s.win.winbar
+      w.foldcolumn = s.win.foldcolumn
+      w.cursorline = s.win.cursorline
+      w.cursorlineopt = s.win.cursorlineopt
+      w.winhighlight = s.win.winhighlight
+    end
   end
-  -- Called directly (not scheduled) — safe because we only touch global options.
-  vim.api.nvim_create_autocmd("BufWipeout", {
+  -- Restore when the dashboard buffer is left or wiped (e.g. :edit in the same window).
+  vim.api.nvim_create_autocmd({ "BufLeave", "BufWipeout" }, {
     buffer = buf,
     once = true,
     callback = restore_chrome,
@@ -718,8 +754,8 @@ function M.open()
   local augroup = vim.api.nvim_create_augroup("pint_dashboard_win", { clear = true })
   vim.api.nvim_create_autocmd("WinEnter", {
     group = augroup,
-    callback = function(ev)
-      if ev.buf ~= buf then
+    callback = function()
+      if vim.api.nvim_win_is_valid(win) and vim.api.nvim_win_get_buf(win) ~= buf then
         restore_chrome()
         vim.api.nvim_del_augroup_by_id(augroup)
       end
@@ -733,6 +769,7 @@ function M.open()
     for _, row in ipairs(ctx.body) do
       if row.key then
         vim.keymap.set("n", row.key, function()
+          restore_chrome()
           run(row.action)
         end, { buffer = buf, nowait = true, desc = "pint: dashboard action" })
       end
