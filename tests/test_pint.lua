@@ -49,6 +49,32 @@ notifier_set["notify() replaces vim.notify and records history"] = function()
   MiniTest.expect.equality(found, true)
 end
 
+notifier_set["notify() from a fast event does not error and records history"] = function()
+  local timer = vim.uv.new_timer()
+  local result
+  timer:start(5, 0, function()
+    result = { pcall(vim.notify, "from fast event", vim.log.levels.WARN, { title = "Async" }) }
+    timer:stop()
+    timer:close()
+  end)
+  vim.wait(500, function()
+    return result ~= nil
+  end)
+  MiniTest.expect.equality(result ~= nil, true, "fast-event notify should run")
+  MiniTest.expect.equality(result[1], true, result[2] and tostring(result[2]) or "")
+  -- The deferred notification should still make it into history.
+  vim.wait(100)
+  require("pint.notifier").show_history()
+  local found = false
+  for _, line in ipairs(vim.api.nvim_buf_get_lines(0, 0, -1, false)) do
+    if line:find("from fast event", 1, true) then
+      found = true
+    end
+  end
+  vim.cmd.close()
+  MiniTest.expect.equality(found, true, "fast-event notification should be recorded")
+end
+
 T["notifier"] = notifier_set
 
 local statuscolumn_set = MiniTest.new_set({

@@ -187,6 +187,14 @@ end
 ---@param level? integer
 ---@param opts? {title?: string, icon?: string, id?: string|integer, timeout?: integer}
 function M.notify(msg, level, opts)
+  -- vim.notify may be called from luv callbacks (LSP progress, jobs); window
+  -- and strwidth APIs are forbidden in a fast event, so defer to the main loop.
+  if vim.in_fast_event() then
+    vim.schedule(function()
+      M.notify(msg, level, opts)
+    end)
+    return
+  end
   opts = opts or {}
   level = level or vim.log.levels.INFO
 
