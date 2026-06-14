@@ -23,8 +23,9 @@ jobs:
         run: |
           curl -fsSL "https://github.com/neovim/neovim/releases/download/${NEOVIM_REF}/nvim-linux-x86_64.tar.gz" -o /tmp/nvim.tar.gz
           tar xzf /tmp/nvim.tar.gz -C /tmp
-          echo "/tmp/nvim-linux-x86_64/bin" >> "$GITHUB_PATH"
-          nvim --version
+          nvim_dir="$(find /tmp -maxdepth 1 -type d -name 'nvim-*' | head -1)"
+          echo "${nvim_dir}/bin" >> "$GITHUB_PATH"
+          "${nvim_dir}/bin/nvim" --version
 
       - name: Fetch mini.nvim
         run: git clone --branch "${MINI_VERSION}" --depth 1 https://github.com/echasnovski/mini.nvim "${GITHUB_WORKSPACE}/.ci/mini.nvim"
