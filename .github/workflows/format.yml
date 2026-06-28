@@ -6,7 +6,7 @@ on:
 
 jobs:
   format:
-    uses: matt-riley/matt-riley-ci/.github/workflows/ci.yml@9558d9e0b4cf7ce0bd0786f7300f2aae0eab0683
+    uses: matt-riley/matt-riley-ci/.github/workflows/ci.yml@bcaf4ae43edf7d26421741424b82c842c83e55ce
     with:
       install: true
       fmt: true
