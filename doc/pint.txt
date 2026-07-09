@@ -1,7 +1,7 @@
                                                                           *pint*
 pint.nvim
 
-Version: 0.1.1
+Version: 0.1.2
 
 A small measure of UI: dashboard, notifier, statuscolumn, indent guides,
 and LSP reference words. Scoped to exactly what one config needs.
