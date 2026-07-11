@@ -9,10 +9,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
-      contents: read
+      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
 
       - name: Install LuaLS
         run: |
@@ -23,34 +25,34 @@ jobs:
 
       - name: Run typecheck
         run: |
-          mkdir -p "${RUNNER_TEMP}/luals-log"
+          mkdir -p "${RUNNER_TEMP}/luals-log" .ci
           "${RUNNER_TEMP}/luals/bin/lua-language-server" \
             --check=. \
             --checklevel=Warning \
             --logpath="${RUNNER_TEMP}/luals-log" \
             || true
+          cp "${RUNNER_TEMP}/luals-log/check.json" .ci/luals-check.json
 
-      - name: Upload diagnostics
-        if: ${{ always() }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
-        with:
-          name: luals-diagnostics
-          path: ${{ runner.temp }}/luals-log/check.json
-          if-no-files-found: error
+      - name: Commit feature-branch diagnostics
+        if: ${{ github.event_name == 'pull_request' }}
+        run: |
+          if git diff --quiet -- .ci/luals-check.json && git ls-files --error-unmatch .ci/luals-check.json >/dev/null 2>&1; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f .ci/luals-check.json
+          git commit -m "chore: capture LuaLS diagnostics"
+          git push origin HEAD:${{ github.head_ref }}
 
       - name: Report diagnostics
         run: |
           python - <<'PY'
           import json
-          import os
           import pathlib
           import sys
 
-          path = pathlib.Path(os.environ["RUNNER_TEMP"]) / "luals-log" / "check.json"
-          if not path.exists():
-              print("No LuaLS diagnostics file generated.")
-              sys.exit(1)
-
+          path = pathlib.Path(".ci/luals-check.json")
           diagnostics = json.loads(path.read_text() or "[]")
           if not diagnostics:
               print("LuaLS diagnostics: none")
