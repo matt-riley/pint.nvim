@@ -18,11 +18,17 @@ Plugin configuration.
 Class ~
 {pint.Config}
 Fields ~
+{style} `(optional)` `(pint.Style)`
 {dashboard} `(optional)` `(pint.dashboard.Config|false)`
 {notifier} `(optional)` `(pint.notifier.Config|false)`
 {statuscolumn} `(optional)` `(pint.statuscolumn.Config|false)`
 {indent} `(optional)` `(pint.indent.Config|false)`
 {words} `(optional)` `(pint.words.Config|false)`
+
+------------------------------------------------------------------------------
+                                                                   *M.restore()*
+                                 `M.restore`()
+Disable every Pint module and release the state Pint owns.
 
 ------------------------------------------------------------------------------
                                                                      *M.setup()*
@@ -37,6 +43,24 @@ Parameters ~
 
 ==============================================================================
 ------------------------------------------------------------------------------
+Class ~
+{pint.StyleAnimation}
+Fields ~
+{enabled} `(optional)` `(boolean)`
+{duration} `(optional)` `(integer)`
+{fps} `(optional)` `(integer)`
+
+------------------------------------------------------------------------------
+Class ~
+{pint.Style}
+Fields ~
+{border} `(optional)` `(string)`
+{icons} `(optional)` `(boolean)`
+{animation} `(optional)` `(pint.StyleAnimation)`
+
+
+==============================================================================
+------------------------------------------------------------------------------
                                                                 *pint-dashboard*
 pint.dashboard
 
@@ -46,19 +70,20 @@ Startup dashboard with header, keyed actions, recent files, and custom sections.
 Class ~
 {pint.dashboard.Key}
 Fields ~
-{icon} `(optional)` `(string)` Icon (usually a Nerd Font glyph)
-{key} `(string)` Single key that triggers the action
+{icon} `(optional)` `(string)`
+{key} `(string)`
 {desc} `(string)`
-{action} `(string|fun())` Keys (starting with "<" or ":") or a function
-{enabled} `(optional)` `(boolean|fun():boolean)` When false, the key row is hidden
-{hidden} `(optional)` `(boolean)` When true, the row is hidden but its keymap is still active
+{action} `(string|fun())`
+{enabled} `(optional)` `(boolean|fun():boolean)`
+{hidden} `(optional)` `(boolean)`
 
 ------------------------------------------------------------------------------
 Class ~
 {pint.dashboard.Item}
 Fields ~
-{label} `(string)`
-{action} `(string|fun())`
+{label} `(string|{ [1]: string, hl?: string }[])`
+{action} `(optional)` `(string|fun())`
+{icon} `(optional)` `(string)`
 
 ------------------------------------------------------------------------------
 Class ~
@@ -67,38 +92,50 @@ Fields ~
 {title} `(string)`
 {icon} `(optional)` `(string)`
 {items} `(fun(): pint.dashboard.Item[])`
-{gap} `(optional)` `(integer)` Empty lines between child items
-{padding} `(optional)` `(integer|{bottom?:integer, top?:integer, [1]?:integer, [2]?:integer})` Padding around the section
-{indent} `(optional)` `(integer)` Spaces to indent child items
-{enabled} `(optional)` `(boolean|fun():boolean)` When false, the section is hidden
+{gap} `(optional)` `(integer)`
+{padding} `(optional)` `(integer|{bottom?:integer, top?:integer, [1]?:integer, [2]?:integer})`
+{indent} `(optional)` `(integer)`
+{enabled} `(optional)` `(boolean|fun():boolean)`
 
 ------------------------------------------------------------------------------
-Dashboard configuration.
 Class ~
 {pint.dashboard.Config}
 Fields ~
-{header} `(optional)` `(string|string[])` ASCII-art header (string is split on newlines)
+{header} `(optional)` `(string|string[])`
 {keys} `(optional)` `(pint.dashboard.Key[])`
-{recent} `(optional)` `({enabled?: boolean, cwd?: boolean, limit?: integer, filter?: fun(file: string): boolean}|false)` Set `false` to disable the recent-files section
+{recent} `(optional)` `({enabled?:boolean, cwd?:boolean, limit?:integer, filter?:fun(file:string):boolean}|false)`
 {sections} `(optional)` `(pint.dashboard.Section[])`
-{autostart} `(optional)` `(boolean)` Open when Neovim starts with no arguments. Default: true
-{width} `(optional)` `(integer)` Maximum content width. Auto-detected when nil.
-{autokeys} `(optional)` `(string)` Sequence of chars for auto-assigned keys (default: 1-9, a-z)
+{autostart} `(optional)` `(boolean)`
+{width} `(optional)` `(integer)`
+{autokeys} `(optional)` `(string)`
+{footer} `(optional)` `(fun(): string|{)` [1]: string, hl?: string }[]|nil
 
 ------------------------------------------------------------------------------
 Class ~
 {pint.dashboard.Row}
 Fields ~
-{text} `(string|(string|{ [1]: string, hl?: string })[])`
+{segments} `({ [1]: string, hl?: string }[])`
 {action} `(optional)` `(string|fun())`
 {key} `(optional)` `(string)`
 {align} `(optional)` "`(center)`"
-{footer} `(optional)` `(boolean)`
+{hidden} `(optional)` `(boolean)`
 
 ------------------------------------------------------------------------------
                                                                       *M.open()*
                                    `M.open`()
 Open the dashboard in the current window.
+
+------------------------------------------------------------------------------
+                                                                   *M.restore()*
+                                 `M.restore`()
+Disable dashboard autostart and close active dashboard buffers.
+
+------------------------------------------------------------------------------
+                                                                     *M.setup()*
+                               `M.setup`({opts})
+Configure the dashboard and open it on argument-less startup.
+Parameters ~
+{opts} `(optional)` `(pint.dashboard.Config)`
 
 
 ==============================================================================
@@ -115,21 +152,32 @@ Class ~
 Fields ~
 {timeout} `(optional)` `(integer)` Milliseconds before a notification hides. Default: 2000
 {margin} `(optional)` `({top: integer, right: integer, bottom: integer})`
-{border} `(optional)` `(string)` Window border. Default: vim.o.winborder or "rounded"
+{border} `(optional)` `(string)` Window border. Default: shared Pint style
 {top_down} `(optional)` `(boolean)` Stack new notifications at the top. Default: false
-{max_history} `(optional)` `(integer)` Maximum history entries to retain. Default: 200
+{max_history} `(optional)` `(integer)` Maximum history entries to retain. Zero means unlimited. Default: 200
+{max_width} `(optional)` `(number|integer)` Maximum width as a ratio (<= 1) or columns. Default: 0.4
+{max_height} `(optional)` `(number|integer)` Maximum height as a ratio (<= 1) or rows. Default: 0.4
 
 ------------------------------------------------------------------------------
-                                                                        *active*
-                                    `active`
-Type ~
-`(pint.notifier.Item[])` active notifications, in display order
+Class ~
+{pint.notifier.Item}
+Fields ~
+{id} `(string|integer)`
+{msg} `(string)`
+{level} `(integer)`
+{title} `(optional)` `(string)`
+{icon} `(optional)` `(string)`
+{time} `(integer)`
+{win} `(optional)` `(integer)`
+{buf} `(optional)` `(integer)`
+{timeout_timer} `(optional)` `(uv.uv_timer_t)`
+{animation_timer} `(optional)` `(uv.uv_timer_t)`
 
 ------------------------------------------------------------------------------
-                                                                       *history*
-                                   `history`
-Type ~
-`({id?: string|integer, msg: string, level: integer, title?: string, time: integer}[])`
+                                                                   *M.dismiss()*
+                               `M.dismiss`({id})
+Parameters ~
+{id} `(optional)` `(string|integer)`
 
 ------------------------------------------------------------------------------
                                                                     *M.notify()*
@@ -138,7 +186,7 @@ Show a notification. Signature matches |vim.notify()|.
 Parameters ~
 {msg} `(string)`
 {level} `(optional)` `(integer)`
-{opts} `(optional)` `({title?: string, icon?: string, id?: string|integer, timeout?: integer})`
+{opts} `(optional)` `({title?:string, icon?:string, id?:string|integer, timeout?:integer})`
 
 ------------------------------------------------------------------------------
                                                               *M.show_history()*
@@ -148,7 +196,14 @@ Show notification history in a floating window.
 ------------------------------------------------------------------------------
                                                                    *M.restore()*
                                  `M.restore`()
-Restore the previous |vim.notify()| handler.
+Restore the previous |vim.notify()| handler and close Pint notifications.
+
+------------------------------------------------------------------------------
+                                                                     *M.setup()*
+                               `M.setup`({opts})
+Install Pint as the |vim.notify()| handler.
+Parameters ~
+{opts} `(optional)` `(pint.notifier.Config)`
 
 
 ==============================================================================
@@ -159,20 +214,42 @@ pint.statuscolumn
 Statuscolumn layout: `[sign] [number] [fold/git sign]`.
 
 ------------------------------------------------------------------------------
+Class ~
+{pint.statuscolumn.Folds}
+Fields ~
+{open} `(optional)` `(boolean)` Show open-fold markers
+{git_hl} `(optional)` `(boolean)` Reuse a Git sign highlight for fold markers
+{precedence} `(optional)` "`(git)`"|"fold" Which item wins when a Git sign and fold marker share the right slot
+
+------------------------------------------------------------------------------
 Statuscolumn configuration.
 Class ~
 {pint.statuscolumn.Config}
 Fields ~
-{folds} `(optional)` `({open: boolean, git_hl: boolean})` Show open-fold markers; reuse git sign hl for fold icons
-{git_patterns} `(optional)` `(string[])` Sign/extmark name patterns treated as git signs
+{folds} `(optional)` `(pint.statuscolumn.Folds)`
+{git_patterns} `(optional)` `(string[])` Sign/extmark name patterns treated as Git signs
+{sign_width} `(optional)` `(integer)` Width of the left sign slot. Default: 2
+{right_width} `(optional)` `(integer)` Width of the fold/Git slot. Default: 2
+{separator} `(optional)` `(string)` Text between line number and right slot. Default: " "
 
 ------------------------------------------------------------------------------
                                                                        *M.get()*
                                    `M.get`()
-Render the statuscolumn for the current window. Use via:
-`vim.o.statuscolumn = "%!v:lua.require'pint.statuscolumn'.get()"`
+Render the statuscolumn for the current window.
 Return ~
 `(string)`
+
+------------------------------------------------------------------------------
+                                                                   *M.restore()*
+                                 `M.restore`()
+Restore the previous global statuscolumn when Pint still owns it.
+
+------------------------------------------------------------------------------
+                                                                     *M.setup()*
+                               `M.setup`({opts})
+Set 'statuscolumn' globally and keep the sign cache fresh.
+Parameters ~
+{opts} `(optional)` `(pint.statuscolumn.Config)`
 
 
 ==============================================================================
@@ -188,11 +265,38 @@ Class ~
 {pint.indent.Config}
 Fields ~
 {char} `(optional)` `(string)` Guide character. Default: "│"
+{scope_char} `(optional)` `(string)` Current-scope guide character. Default: same as `char`
 {hl} `(optional)` `(string)` Guide highlight group. Default: "PintIndent"
 {scope_hl} `(optional)` `(string)` Current-scope guide highlight. Default: "PintIndentScope"
 {scope} `(optional)` `(boolean)` Highlight the current scope's guide. Default: true
 {textobject} `(optional)` `(boolean)` Map ii/ai and [i/]i. Default: true
 {exclude_filetypes} `(optional)` `(string[])` Filetypes to skip
+
+------------------------------------------------------------------------------
+                                                                *M.textobject()*
+                            `M.textobject`({outer})
+Select or operate on the current indent scope.
+Parameters ~
+{outer} `(boolean)` Include the line above and trailing line for `ai`
+
+------------------------------------------------------------------------------
+                                                                      *M.jump()*
+                               `M.jump`({bottom})
+Jump to the top or bottom edge of the current indent scope.
+Parameters ~
+{bottom} `(boolean)` Jump to the bottom edge instead of the top
+
+------------------------------------------------------------------------------
+                                                                   *M.restore()*
+                                 `M.restore`()
+Disable indent guides and restore mappings Pint still owns.
+
+------------------------------------------------------------------------------
+                                                                     *M.setup()*
+                               `M.setup`({opts})
+Enable indent guides.
+Parameters ~
+{opts} `(optional)` `(pint.indent.Config)`
 
 
 ==============================================================================
@@ -209,12 +313,24 @@ Class ~
 Fields ~
 {debounce} `(optional)` `(integer)` Milliseconds of cursor rest before highlighting. Default: 200
 {enabled} `(optional)` `(boolean)` Start enabled. Default: true
+{notify} `(optional)` `(boolean)` Notify when a requested jump has no target. Default: false
 
 ------------------------------------------------------------------------------
-                                                                    *refs_cache*
-                                  `refs_cache`
-Type ~
-`(table<integer, {line: integer, character: integer}[]>)`
+Class ~
+{pint.words.Reference}
+Fields ~
+{line} `(integer)` Zero-based line
+{character} `(integer)` Zero-based byte column
+
+------------------------------------------------------------------------------
+Class ~
+{pint.words.State}
+Fields ~
+{generation} `(integer)`
+{refs} `(pint.words.Reference[])`
+{timer} `(optional)` `(uv.uv_timer_t)`
+{request_id} `(optional)` `(integer)`
+{client_id} `(optional)` `(integer)`
 
 ------------------------------------------------------------------------------
                                                                 *M.is_enabled()*
@@ -231,7 +347,7 @@ Enable reference highlighting.
 ------------------------------------------------------------------------------
                                                                    *M.disable()*
                                  `M.disable`()
-Disable reference highlighting and clear existing highlights.
+Disable reference highlighting and clear tracked references.
 
 ------------------------------------------------------------------------------
                                                                       *M.jump()*
@@ -240,6 +356,18 @@ Jump to a reference of the symbol under the cursor.
 Parameters ~
 {count} `(integer)` 1 for next, -1 for previous
 {cycle} `(optional)` `(boolean)` Wrap around at the ends. Default: true
+
+------------------------------------------------------------------------------
+                                                                   *M.restore()*
+                                 `M.restore`()
+Disable automatic highlighting and release all tracked state.
+
+------------------------------------------------------------------------------
+                                                                     *M.setup()*
+                               `M.setup`({opts})
+Set up autocmds for automatic reference highlighting.
+Parameters ~
+{opts} `(optional)` `(pint.words.Config)`
 
 
  vim:tw=78:ts=8:noet:ft=help:norl:

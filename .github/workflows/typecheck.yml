@@ -1,0 +1,54 @@
+name: Typecheck
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  typecheck:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+
+      - name: Install mise
+        uses: jdx/mise-action@e6a8b3978addb5a52f2b4cd9d91eafa7f0ab959d # v4
+
+      - name: Install LuaLS
+        run: |
+          mkdir -p "${RUNNER_TEMP}/luals"
+          curl -fsSL \
+            "https://github.com/LuaLS/lua-language-server/releases/download/3.13.6/lua-language-server-3.13.6-linux-x64.tar.gz" \
+            | tar -xz -C "${RUNNER_TEMP}/luals"
+
+      - name: Run typecheck
+        run: |
+          mkdir -p "${RUNNER_TEMP}/luals-log"
+          export VIMRUNTIME="$(nvim --headless -u NONE -c 'lua io.write(vim.env.VIMRUNTIME)' -c 'qa!' 2>/dev/null)"
+          "${RUNNER_TEMP}/luals/bin/lua-language-server" \
+            --check=. \
+            --checklevel=Warning \
+            --check_format=json \
+            --logpath="${RUNNER_TEMP}/luals-log" \
+            || true
+
+      - name: Report diagnostics
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import pathlib
+          import sys
+
+          path = pathlib.Path(os.environ["RUNNER_TEMP"]) / "luals-log" / "check.json"
+          diagnostics = json.loads(path.read_text() or "{}")
+          if not diagnostics:
+              print("LuaLS diagnostics: none")
+              sys.exit(0)
+
+          print(json.dumps(diagnostics, indent=2))
+          sys.exit(1)
+          PY

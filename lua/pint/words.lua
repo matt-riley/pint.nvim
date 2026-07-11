@@ -12,122 +12,296 @@ local M = {}
 ---@class pint.words.Config
 ---@field debounce? integer Milliseconds of cursor rest before highlighting. Default: 200
 ---@field enabled? boolean Start enabled. Default: true
+---@field notify? boolean Notify when a requested jump has no target. Default: false
 
----@private
 local defaults = {
   debounce = 200,
   enabled = true,
+  notify = false,
 }
 
 M.config = vim.deepcopy(defaults)
 
+---@class pint.words.Reference
+---@field line integer Zero-based line
+---@field character integer Zero-based byte column
+
+---@class pint.words.State
+---@field generation integer
+---@field refs pint.words.Reference[]
+---@field timer? uv.uv_timer_t
+---@field request_id? integer
+---@field client_id? integer
+
 local enabled = true
-local timer ---@type uv.uv_timer_t|nil
-local ns = vim.api.nvim_create_namespace("pint.words")
-
----@type table<integer, {line: integer, character: integer}[]>
-local refs_cache = {}
-
-local HL = {
-  [1] = "LspReferenceText",
-  [2] = "LspReferenceRead",
-  [3] = "LspReferenceWrite",
-}
+---@private
+---@type table<integer, pint.words.State>
+local states = {}
 
 ---@private
-local function supported(buf)
-  return #vim.lsp.get_clients({ bufnr = buf, method = "textDocument/documentHighlight" }) > 0
+---@param buf integer
+---@return pint.words.State
+local function state_for(buf)
+  if not states[buf] then
+    states[buf] = { generation = 0, refs = {} }
+  end
+  return states[buf]
 end
 
 ---@private
-local function clear(buf)
+---@param timer uv.uv_timer_t?
+local function stop_timer(timer)
+  if not timer then
+    return
+  end
+  timer:stop()
+  if not timer:is_closing() then
+    timer:close()
+  end
+end
+
+---@private
+---@param state pint.words.State
+local function cancel_request(state)
+  if not state.request_id or not state.client_id then
+    return
+  end
+  local client = vim.lsp.get_client_by_id(state.client_id)
+  if client and type(client.cancel_request) == "function" then
+    pcall(client.cancel_request, client, state.request_id)
+  end
+  state.request_id = nil
+  state.client_id = nil
+end
+
+---@private
+---@param buf integer
+local function clear_references(buf)
   if vim.api.nvim_buf_is_valid(buf) then
-    vim.api.nvim_buf_clear_namespace(buf, ns, 0, -1)
-    refs_cache[buf] = nil
+    pcall(vim.lsp.util.buf_clear_references, buf)
   end
 end
 
 ---@private
----@return {line: integer, character: integer}[]
-local function sorted_starts(result)
-  local starts = {}
-  for _, ref in ipairs(result or {}) do
-    table.insert(starts, ref.range.start)
+---@param buf integer
+---@param remove boolean
+local function invalidate(buf, remove)
+  local state = states[buf]
+  if state then
+    state.generation = state.generation + 1
+    stop_timer(state.timer)
+    state.timer = nil
+    cancel_request(state)
+    state.refs = {}
   end
-  table.sort(starts, function(a, b)
-    if a.line == b.line then
-      return a.character < b.character
+  clear_references(buf)
+  if remove then
+    states[buf] = nil
+  end
+end
+
+---@private
+---@param line string
+---@param encoding string
+---@param character integer
+---@return integer
+local function byte_column(line, encoding, character)
+  local ok, value = pcall(vim.str_byteindex, line, encoding, character, false)
+  if ok then
+    return value
+  end
+  if encoding == "utf-8" then
+    return math.min(character, #line)
+  end
+  local fallback_ok, fallback = pcall(vim.str_byteindex, line, character)
+  return fallback_ok and fallback or math.min(character, #line)
+end
+
+---@private
+---@param buf integer
+---@param result table[]?
+---@param encoding string
+---@return pint.words.Reference[]
+local function references_from_result(buf, result, encoding)
+  local refs = {}
+  for _, reference in ipairs(result or {}) do
+    local start = reference.range and reference.range.start
+    if start then
+      local line = vim.api.nvim_buf_get_lines(buf, start.line, start.line + 1, false)[1] or ""
+      refs[#refs + 1] = {
+        line = start.line,
+        character = byte_column(line, encoding, start.character),
+      }
     end
-    return a.line < b.line
+  end
+  table.sort(refs, function(left, right)
+    if left.line == right.line then
+      return left.character < right.character
+    end
+    return left.line < right.line
   end)
-  return starts
+  return refs
 end
 
 ---@private
-local function apply_highlights(buf, result)
-  vim.api.nvim_buf_clear_namespace(buf, ns, 0, -1)
-  if not result then
-    refs_cache[buf] = {}
-    return
+---@param refs pint.words.Reference[]
+---@param line integer
+---@param col integer
+---@param count integer
+---@param cycle boolean
+---@return pint.words.Reference?
+local function target(refs, line, col, count, cycle)
+  if #refs == 0 or count == 0 then
+    return nil
   end
-  for _, ref in ipairs(result) do
-    local range = ref.range
-    local hl = HL[ref.kind] or HL[1]
-    vim.hl.range(buf, ns, hl, range.start.line, range.start.character, range["end"].line, range["end"].character)
+
+  local index
+  if count > 0 then
+    for current, reference in ipairs(refs) do
+      if reference.line > line or (reference.line == line and reference.character > col) then
+        index = current
+        break
+      end
+    end
+    index = (index or (#refs + 1)) + count - 1
+  else
+    for current = #refs, 1, -1 do
+      local reference = refs[current]
+      if reference.line < line or (reference.line == line and reference.character < col) then
+        index = current
+        break
+      end
+    end
+    index = (index or 0) + count + 1
   end
-  refs_cache[buf] = sorted_starts(result)
+
+  if cycle then
+    index = ((index - 1) % #refs) + 1
+  elseif index < 1 or index > #refs then
+    return nil
+  end
+  return refs[index]
 end
 
 ---@private
----@param cb? fun(refs: {line: integer, character: integer}[])
-local function refresh(buf, cb)
-  if not supported(buf) then
-    clear(buf)
-    if cb then
-      cb({})
+---@param buf integer
+---@return table?
+local function highlight_client(buf)
+  return vim.lsp.get_clients({
+    bufnr = buf,
+    method = "textDocument/documentHighlight",
+  })[1]
+end
+
+---@private
+---@param buf integer
+---@param win integer
+---@param callback? fun(refs:pint.words.Reference[])
+local function refresh(buf, win, callback)
+  if not enabled or not vim.api.nvim_buf_is_valid(buf) or not vim.api.nvim_win_is_valid(win) then
+    if callback then
+      callback({})
     end
     return
   end
-  local win = vim.fn.bufwinid(buf)
-  if win <= 0 then
-    win = vim.api.nvim_get_current_win()
+  if vim.api.nvim_win_get_buf(win) ~= buf then
+    if callback then
+      callback({})
+    end
+    return
   end
-  local client = vim.lsp.get_clients({ bufnr = buf, method = "textDocument/documentHighlight" })[1]
+
+  local state = state_for(buf)
+  state.generation = state.generation + 1
+  local generation = state.generation
+  stop_timer(state.timer)
+  state.timer = nil
+  cancel_request(state)
+
+  local client = highlight_client(buf)
   if not client then
-    clear(buf)
-    if cb then
-      cb({})
+    invalidate(buf, false)
+    if callback then
+      callback({})
     end
     return
   end
-  local params = vim.lsp.util.make_position_params(win, client.offset_encoding)
-  client:request("textDocument/documentHighlight", params, function(err, result)
+
+  local cursor = vim.api.nvim_win_get_cursor(win)
+  local changedtick = vim.api.nvim_buf_get_changedtick(buf)
+  local encoding = client.offset_encoding or "utf-16"
+  local params = vim.lsp.util.make_position_params(win, encoding)
+
+  local success, request_id = client:request("textDocument/documentHighlight", params, function(err, result)
     vim.schedule(function()
-      if not vim.api.nvim_buf_is_valid(buf) then
+      local current = states[buf]
+      if not current or current.generation ~= generation or not enabled then
         return
       end
-      if err then
-        clear(buf)
-        if cb then
-          cb({})
+      if not vim.api.nvim_buf_is_valid(buf) or vim.api.nvim_buf_get_changedtick(buf) ~= changedtick then
+        return
+      end
+      if not vim.api.nvim_win_is_valid(win) or vim.api.nvim_win_get_buf(win) ~= buf then
+        return
+      end
+      if not vim.deep_equal(vim.api.nvim_win_get_cursor(win), cursor) then
+        return
+      end
+
+      current.request_id = nil
+      current.client_id = nil
+      if err or not result then
+        current.refs = {}
+        clear_references(buf)
+        if callback then
+          callback({})
         end
         return
       end
-      apply_highlights(buf, result)
-      if cb then
-        cb(refs_cache[buf] or {})
+
+      pcall(vim.lsp.util.buf_highlight_references, buf, result, encoding)
+      current.refs = references_from_result(buf, result, encoding)
+      if callback then
+        callback(current.refs)
       end
     end)
   end, buf)
+
+  if success then
+    state.request_id = request_id
+    state.client_id = client.id
+  elseif callback then
+    callback({})
+  end
 end
 
 ---@private
-local function highlight()
-  local buf = vim.api.nvim_get_current_buf()
-  if not (enabled and supported(buf)) then
+---@param buf integer
+---@param win integer
+local function schedule(buf, win)
+  if not enabled or not vim.api.nvim_buf_is_valid(buf) or not vim.api.nvim_win_is_valid(win) then
     return
   end
-  refresh(buf)
+
+  local state = state_for(buf)
+  state.generation = state.generation + 1
+  stop_timer(state.timer)
+  cancel_request(state)
+  state.refs = {}
+  clear_references(buf)
+
+  state.timer = vim.uv.new_timer()
+  state.timer:start(M.config.debounce, 0, function()
+    vim.schedule(function()
+      local current = states[buf]
+      if not current then
+        return
+      end
+      stop_timer(current.timer)
+      current.timer = nil
+      refresh(buf, win)
+    end)
+  end)
 end
 
 --- Is the words module currently enabled?
@@ -139,39 +313,36 @@ end
 --- Enable reference highlighting.
 function M.enable()
   enabled = true
-  highlight()
+  local win = vim.api.nvim_get_current_win()
+  schedule(vim.api.nvim_win_get_buf(win), win)
 end
 
---- Disable reference highlighting and clear existing highlights.
+--- Disable reference highlighting and clear tracked references.
 function M.disable()
   enabled = false
-  clear(vim.api.nvim_get_current_buf())
+  local buffers = vim.tbl_keys(states)
+  for _, buf in ipairs(buffers) do
+    invalidate(buf, true)
+  end
 end
 
 ---@private
----@param starts {line: integer, character: integer}[]
+---@param refs pint.words.Reference[]
 ---@param count integer
 ---@param cycle boolean
-local function jump_to(starts, count, cycle)
-  if #starts == 0 then
-    return
+---@param win integer
+---@return boolean
+local function jump_to(refs, count, cycle, win)
+  if not vim.api.nvim_win_is_valid(win) then
+    return false
   end
-  local cur = vim.api.nvim_win_get_cursor(0)
-  local line, col = cur[1] - 1, cur[2]
-  local current = 1
-  for i, pos in ipairs(starts) do
-    if pos.line < line or (pos.line == line and pos.character <= col) then
-      current = i
-    end
+  local cursor = vim.api.nvim_win_get_cursor(win)
+  local reference = target(refs, cursor[1] - 1, cursor[2], count, cycle)
+  if not reference then
+    return false
   end
-  local target = current + count
-  if cycle then
-    target = ((target - 1) % #starts) + 1
-  elseif target < 1 or target > #starts then
-    return
-  end
-  local pos = starts[target]
-  vim.api.nvim_win_set_cursor(0, { pos.line + 1, pos.character })
+  vim.api.nvim_win_set_cursor(win, { reference.line + 1, reference.character })
+  return true
 end
 
 --- Jump to a reference of the symbol under the cursor.
@@ -181,42 +352,80 @@ function M.jump(count, cycle)
   if cycle == nil then
     cycle = true
   end
-  local buf = vim.api.nvim_get_current_buf()
-  local cached = refs_cache[buf]
-  if cached and #cached > 0 then
-    jump_to(cached, count, cycle)
+
+  local win = vim.api.nvim_get_current_win()
+  local buf = vim.api.nvim_win_get_buf(win)
+  local state = states[buf]
+  if state and #state.refs > 0 then
+    if not jump_to(state.refs, count, cycle, win) and M.config.notify then
+      vim.notify("Pint: no further references", vim.log.levels.INFO)
+    end
     return
   end
-  refresh(buf, function(starts)
-    jump_to(starts, count, cycle)
+
+  refresh(buf, win, function(refs)
+    if not jump_to(refs, count, cycle, win) and M.config.notify then
+      vim.notify("Pint: no references", vim.log.levels.INFO)
+    end
   end)
+end
+
+--- Disable automatic highlighting and release all tracked state.
+function M.restore()
+  enabled = false
+  pcall(vim.api.nvim_del_augroup_by_name, "PintWords")
+  local buffers = vim.tbl_keys(states)
+  for _, buf in ipairs(buffers) do
+    invalidate(buf, true)
+  end
+  states = {}
 end
 
 --- Set up autocmds for automatic reference highlighting.
 ---@param opts? pint.words.Config
----@private
 function M.setup(opts)
+  M.restore()
   M.config = vim.tbl_deep_extend("force", vim.deepcopy(defaults), opts or {})
   enabled = M.config.enabled
 
   local group = vim.api.nvim_create_augroup("PintWords", { clear = true })
   vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI", "ModeChanged" }, {
     group = group,
-    callback = function(ev)
-      clear(ev.buf)
-      if not enabled then
-        return
+    callback = function(event)
+      local buf = event.buf ~= 0 and event.buf or vim.api.nvim_get_current_buf()
+      local win = vim.fn.bufwinid(buf)
+      if win > 0 then
+        schedule(buf, win)
       end
-      timer = timer or vim.uv.new_timer()
-      timer:start(M.config.debounce, 0, vim.schedule_wrap(highlight))
     end,
   })
-  vim.api.nvim_create_autocmd("LspDetach", {
+  vim.api.nvim_create_autocmd({ "LspDetach", "BufWipeout" }, {
     group = group,
-    callback = function(ev)
-      clear(ev.buf)
+    callback = function(event)
+      invalidate(event.buf, true)
+    end,
+  })
+  vim.api.nvim_create_autocmd("LspAttach", {
+    group = group,
+    callback = function(event)
+      if enabled then
+        local win = vim.fn.bufwinid(event.buf)
+        if win > 0 then
+          schedule(event.buf, win)
+        end
+      end
     end,
   })
 end
+
+M._test = {
+  byte_column = byte_column,
+  target = target,
+  refresh = refresh,
+  schedule = schedule,
+  state_count = function()
+    return vim.tbl_count(states)
+  end,
+}
 
 return M

@@ -1,0 +1,21 @@
+{
+  "$schema": "https://raw.githubusercontent.com/LuaLS/vscode-lua/master/setting/schema.json",
+  "runtime.version": "LuaJIT",
+  "workspace.library": [
+    "$VIMRUNTIME/lua"
+  ],
+  "workspace.checkThirdParty": false,
+  "workspace.ignoreDir": [
+    ".ci",
+    "doc",
+    "docs",
+    "tests"
+  ],
+  "diagnostics.globals": [
+    "vim",
+    "MiniIcons"
+  ],
+  "diagnostics.disable": [
+    "inject-field"
+  ]
+}
