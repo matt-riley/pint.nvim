@@ -16,6 +16,9 @@ jobs:
         with:
           ref: ${{ github.head_ref || github.ref_name }}
 
+      - name: Install mise
+        uses: jdx/mise-action@e6a8b3978addb5a52f2b4cd9d91eafa7f0ab959d # v4
+
       - name: Install LuaLS
         run: |
           mkdir -p "${RUNNER_TEMP}/luals"
@@ -26,6 +29,7 @@ jobs:
       - name: Run typecheck
         run: |
           mkdir -p "${RUNNER_TEMP}/luals-log" .ci
+          export VIMRUNTIME="$(nvim --headless -u NONE -c 'lua io.write(vim.env.VIMRUNTIME)' -c 'qa!' 2>/dev/null)"
           "${RUNNER_TEMP}/luals/bin/lua-language-server" \
             --check=. \
             --checklevel=Warning \
