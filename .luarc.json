@@ -5,8 +5,15 @@
     "$VIMRUNTIME/lua"
   ],
   "workspace.checkThirdParty": false,
+  "workspace.ignoreDir": [
+    ".ci",
+    "doc",
+    "docs",
+    "tests"
+  ],
   "diagnostics.globals": [
-    "vim"
+    "vim",
+    "MiniIcons"
   ],
   "diagnostics.disable": [
     "inject-field"
