@@ -44,8 +44,10 @@ M.config = vim.deepcopy(defaults)
 ---@field timeout_timer? uv.uv_timer_t
 ---@field animation_timer? uv.uv_timer_t
 
+---@private
 ---@type pint.notifier.Item[]
 local active = {}
+---@private
 ---@type {id?: string|integer, msg:string, level:integer, title?:string, time:integer}[]
 local history = {}
 local next_id = 0
@@ -60,10 +62,12 @@ local level_meta = {
   [vim.log.levels.ERROR] = { hl = "PintError", icon = "error", name = "Error" },
 }
 
+---@private
 local function meta_for(level)
   return level_meta[level] or level_meta[vim.log.levels.INFO]
 end
 
+---@private
 ---@param value number|integer
 ---@param total integer
 ---@param minimum integer
@@ -73,6 +77,7 @@ local function resolve_size(value, total, minimum)
   return math.max(resolved, minimum)
 end
 
+---@private
 ---@param timer uv.uv_timer_t?
 local function stop_timer(timer)
   if not timer then
@@ -84,12 +89,14 @@ local function stop_timer(timer)
   end
 end
 
+---@private
 ---@param item pint.notifier.Item
 local function stop_animation(item)
   stop_timer(item.animation_timer)
   item.animation_timer = nil
 end
 
+---@private
 ---@param item pint.notifier.Item
 local function close_item(item)
   stop_timer(item.timeout_timer)
@@ -105,6 +112,7 @@ local function close_item(item)
   item.win, item.buf = nil, nil
 end
 
+---@private
 ---@param item pint.notifier.Item
 ---@param row number
 ---@param col number
@@ -126,6 +134,7 @@ local function settle(item, row, col, blend)
   vim.wo[item.win].winblend = blend
 end
 
+---@private
 ---@param item pint.notifier.Item
 ---@param row number
 ---@param col number
@@ -185,6 +194,7 @@ local function transition(item, row, col, closing, on_complete)
   end)
 end
 
+---@private
 local function layout(immediate)
   local margin = M.config.margin
   local row = M.config.top_down and margin.top or (vim.o.lines - margin.bottom - 2)
@@ -211,6 +221,7 @@ local function layout(immediate)
   end
 end
 
+---@private
 ---@param text string
 ---@param max_width integer
 ---@param max_height integer
@@ -229,6 +240,7 @@ local function message_lines(text, max_width, max_height)
   return lines
 end
 
+---@private
 ---@param item pint.notifier.Item
 local function render(item)
   local meta = meta_for(item.level)
@@ -281,6 +293,7 @@ local function render(item)
   vim.wo[item.win].wrap = false
 end
 
+---@private
 ---@param entry {id?:string|integer,msg:string,level:integer,title?:string,time:integer}
 local function record_history(entry)
   if entry.id then

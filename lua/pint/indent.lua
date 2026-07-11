@@ -33,13 +33,17 @@ M.config = vim.deepcopy(defaults)
 
 local namespace = vim.api.nvim_create_namespace("pint.indent")
 local enabled = false
+---@private
 ---@type table<integer, {top:integer,bottom:integer,indent:integer}>
 local scopes = {}
+---@private
 ---@type table<integer, {lines:string[], indents:table<integer,integer>}>
 local redraw = {}
+---@private
 ---@type {mode:string,lhs:string,desc:string,previous:table?}[]
 local installed_maps = {}
 
+---@private
 ---@param buf integer
 ---@param line string
 ---@return integer
@@ -61,6 +65,7 @@ local function indent_width(buf, line)
   return width
 end
 
+---@private
 ---@param line string
 ---@return integer
 local function first_nonblank_byte(line)
@@ -68,6 +73,7 @@ local function first_nonblank_byte(line)
   return start and (start - 1) or 0
 end
 
+---@private
 ---@param buf integer
 ---@return {lines:string[], indents:table<integer,integer>}
 local function context_for(buf)
@@ -80,6 +86,7 @@ local function context_for(buf)
   return redraw[buf]
 end
 
+---@private
 ---@param ctx {lines:string[], indents:table<integer,integer>}
 ---@param from integer
 ---@param to integer
@@ -95,6 +102,7 @@ local function nonblank(ctx, from, to, step)
   return 0
 end
 
+---@private
 ---@param buf integer
 ---@param ctx {lines:string[], indents:table<integer,integer>}
 ---@param lnum integer
@@ -123,6 +131,7 @@ local function line_indent(buf, ctx, lnum)
   return value
 end
 
+---@private
 ---@param win integer
 ---@param ctx? {lines:string[], indents:table<integer,integer>}
 ---@return integer top, integer bottom, integer indent
@@ -160,17 +169,20 @@ local function scope_range(win, ctx)
   return top, bottom, indent
 end
 
+---@private
 ---@param buf integer
 ---@return boolean
 local function excluded(buf)
   return vim.bo[buf].buftype ~= "" or vim.tbl_contains(M.config.exclude_filetypes, vim.bo[buf].filetype)
 end
 
+---@private
 local function on_start()
   redraw = {}
   return enabled
 end
 
+---@private
 local function on_win(_, win, buf)
   if not enabled or excluded(buf) then
     scopes[win] = nil
@@ -186,6 +198,7 @@ local function on_win(_, win, buf)
   return true
 end
 
+---@private
 local function on_range(_, win, buf, first, last)
   if not enabled or excluded(buf) then
     return
@@ -232,6 +245,7 @@ local function on_range(_, win, buf, first, last)
   end
 end
 
+---@private
 ---@param mode string
 ---@param lhs string
 ---@param rhs string|function
@@ -251,6 +265,7 @@ local function install_map(mode, lhs, rhs, desc)
   }
 end
 
+---@private
 ---@param mapping table
 local function restore_mapping(mapping)
   local current = vim.fn.maparg(mapping.lhs, mapping.mode, false, true)

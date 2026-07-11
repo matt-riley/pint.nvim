@@ -34,6 +34,7 @@ local highlight_links = {
   PintHint = "DiagnosticHint",
 }
 
+---@private
 ---@param opts? pint.Style
 function M.setup(opts)
   M.config = vim.tbl_deep_extend("force", vim.deepcopy(defaults), opts or {})
@@ -43,6 +44,7 @@ function M.setup(opts)
   end
 end
 
+---@private
 ---@param value? string
 ---@return string
 function M.border(value)
@@ -53,6 +55,7 @@ function M.border(value)
   return resolved
 end
 
+---@private
 ---@param opts table
 ---@return table
 function M.clamp_float(opts)
@@ -71,6 +74,7 @@ function M.clamp_float(opts)
   })
 end
 
+---@private
 ---@param text string
 ---@param max_width integer
 ---@return string
@@ -105,6 +109,7 @@ function M.truncate(text, max_width)
   return out .. ellipsis
 end
 
+---@private
 ---@param kind string
 ---@param fallback string
 ---@return string

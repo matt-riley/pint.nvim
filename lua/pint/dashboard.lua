@@ -75,6 +75,7 @@ local defaults = {
 M.config = vim.deepcopy(defaults)
 
 local namespace = vim.api.nvim_create_namespace("pint.dashboard")
+---@private
 ---@type table<integer, table>
 local instances = {}
 local global_chrome ---@type {showtabline:integer,laststatus:integer,count:integer}?
@@ -97,12 +98,14 @@ local highlight_links = {
   PintDashboardError = "DiagnosticError",
 }
 
+---@private
 local function setup_highlights()
   for name, target in pairs(highlight_links) do
     vim.api.nvim_set_hl(0, name, { link = target, default = true })
   end
 end
 
+---@private
 ---@param value boolean|fun():boolean|nil
 ---@return boolean
 local function enabled(value)
@@ -113,6 +116,7 @@ local function enabled(value)
   return value ~= false
 end
 
+---@private
 ---@param padding integer|table|nil
 ---@return integer top, integer bottom
 local function section_padding(padding)
@@ -128,6 +132,7 @@ local function section_padding(padding)
   return padding[2] or 0, padding[1] or 0
 end
 
+---@private
 ---@param root string
 ---@param file string
 ---@return boolean
@@ -139,6 +144,7 @@ local function path_inside(root, file)
     or normalized_file:sub(1, #normalized_root + 1) == normalized_root .. separator
 end
 
+---@private
 ---@return string[]
 local function recent_files()
   local config = M.config.recent
@@ -168,6 +174,7 @@ local function recent_files()
   return files
 end
 
+---@private
 ---@param action string|fun()
 local function run(action)
   if type(action) == "function" then
@@ -180,6 +187,7 @@ local function run(action)
   end
 end
 
+---@private
 ---@param file string
 ---@return string icon, string highlight
 local function file_icon(file)
@@ -205,6 +213,7 @@ local function file_icon(file)
   return ui.icon("file", "·"), "PintDashboardIcon"
 end
 
+---@private
 ---@param text string
 ---@param width integer
 ---@return string
@@ -238,6 +247,7 @@ local function tail(text, width)
   return "…" .. result
 end
 
+---@private
 ---@param file string
 ---@param width integer
 ---@param relative boolean
@@ -262,6 +272,7 @@ local function path_segments(file, width, relative)
   return { { display, hl = "PintDashboardFile" } }
 end
 
+---@private
 ---@param segments pint.dashboard.Seg[]
 ---@return integer
 local function segments_width(segments)
@@ -272,6 +283,7 @@ local function segments_width(segments)
   return width
 end
 
+---@private
 ---@param segments pint.dashboard.Seg[]
 ---@param width integer
 ---@return pint.dashboard.Seg[]
@@ -292,6 +304,7 @@ local function fit_segments(segments, width)
   return result
 end
 
+---@private
 ---@param segments pint.dashboard.Seg[]
 ---@param key string
 ---@param width integer
@@ -306,6 +319,7 @@ local function with_key(segments, key, width)
   return content
 end
 
+---@private
 ---@return string
 local function next_autokey(sequence, used, state)
   while state.index <= #sequence do
@@ -319,11 +333,13 @@ local function next_autokey(sequence, used, state)
   return ""
 end
 
+---@private
 ---@param rows pint.dashboard.Row[]
 local function blank(rows)
   rows[#rows + 1] = { segments = {} }
 end
 
+---@private
 ---@param rows pint.dashboard.Row[]
 ---@param section pint.dashboard.Section
 ---@param max_width integer
@@ -396,6 +412,7 @@ local function add_section(rows, section, max_width, used, autokeys, auto_state)
   end
 end
 
+---@private
 ---@param win integer
 ---@return pint.dashboard.Row[] rows, pint.dashboard.Seg[]? footer
 local function build_rows(win)
@@ -490,6 +507,7 @@ local function build_rows(win)
   return rows, footer
 end
 
+---@private
 ---@param segments pint.dashboard.Seg[]
 ---@param left integer
 ---@return string line, {col:integer,end_col:integer,hl:string}[] marks
@@ -511,6 +529,7 @@ local function render_segments(segments, left)
   return table.concat(parts), marks
 end
 
+---@private
 ---@param buf integer
 ---@param win integer
 ---@param rows pint.dashboard.Row[]
@@ -613,6 +632,7 @@ local function paint(buf, win, rows, footer)
   }
 end
 
+---@private
 local function acquire_global_chrome()
   if not global_chrome then
     global_chrome = {
@@ -626,6 +646,7 @@ local function acquire_global_chrome()
   vim.o.laststatus = 0
 end
 
+---@private
 local function release_global_chrome()
   if not global_chrome then
     return
@@ -643,6 +664,7 @@ local function release_global_chrome()
   global_chrome = nil
 end
 
+---@private
 ---@param instance table
 local function restore_instance(instance)
   if instance.restored then
@@ -663,6 +685,7 @@ local function restore_instance(instance)
   instances[instance.buf] = nil
 end
 
+---@private
 ---@param instance table
 local function clear_action_maps(instance)
   for key in pairs(instance.action_maps) do
@@ -674,6 +697,7 @@ local function clear_action_maps(instance)
   instance.action_maps = {}
 end
 
+---@private
 ---@param instance table
 local function bind_action_maps(instance)
   clear_action_maps(instance)
@@ -688,6 +712,7 @@ local function bind_action_maps(instance)
   end
 end
 
+---@private
 ---@param instance table
 local function refresh_instance(instance)
   if not vim.api.nvim_buf_is_valid(instance.buf) or not vim.api.nvim_win_is_valid(instance.win) then

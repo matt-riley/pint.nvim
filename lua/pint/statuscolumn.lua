@@ -33,13 +33,16 @@ M.config = vim.deepcopy(defaults)
 
 ---@alias pint.statuscolumn.Sign {name:string, text:string, texthl:string?, priority:integer}
 
+---@private
 ---@type table<integer, table<integer, pint.statuscolumn.Sign[]>>
 local cache = {}
+---@private
 local active = false
 local previous_statuscolumn ---@type string?
 local expression = "%!v:lua.require'pint.statuscolumn'.get()"
 local namespace = vim.api.nvim_create_namespace("pint.statuscolumn")
 
+---@private
 ---@param name string
 ---@return boolean
 local function is_git(name)
@@ -51,6 +54,7 @@ local function is_git(name)
   return false
 end
 
+---@private
 ---@param text string
 ---@param width integer
 ---@return string
@@ -72,6 +76,7 @@ local function fit(text, width)
   return out .. string.rep(" ", math.max(width - vim.api.nvim_strwidth(out), 0))
 end
 
+---@private
 ---@param sign? pint.statuscolumn.Sign
 ---@param width integer
 ---@return string
@@ -87,6 +92,7 @@ local function format_sign(sign, width)
   return text
 end
 
+---@private
 ---@param lnum integer
 ---@param relnum integer
 ---@param number boolean
@@ -105,12 +111,14 @@ local function number_text(lnum, relnum, number, relativenumber)
   return ""
 end
 
+---@private
 ---@param virtnum integer
 ---@return boolean
 local function renderable(virtnum)
   return virtnum == 0
 end
 
+---@private
 ---@param buf integer
 ---@return table<integer, pint.statuscolumn.Sign[]>
 local function buffer_signs(buf)
@@ -145,6 +153,7 @@ local function buffer_signs(buf)
   return signs
 end
 
+---@private
 ---@param win integer
 ---@param lnum integer
 ---@param git? pint.statuscolumn.Sign

@@ -34,9 +34,11 @@ M.config = vim.deepcopy(defaults)
 ---@field client_id? integer
 
 local enabled = true
+---@private
 ---@type table<integer, pint.words.State>
 local states = {}
 
+---@private
 ---@param buf integer
 ---@return pint.words.State
 local function state_for(buf)
@@ -46,6 +48,7 @@ local function state_for(buf)
   return states[buf]
 end
 
+---@private
 ---@param timer uv.uv_timer_t?
 local function stop_timer(timer)
   if not timer then
@@ -57,6 +60,7 @@ local function stop_timer(timer)
   end
 end
 
+---@private
 ---@param state pint.words.State
 local function cancel_request(state)
   if not state.request_id or not state.client_id then
@@ -70,6 +74,7 @@ local function cancel_request(state)
   state.client_id = nil
 end
 
+---@private
 ---@param buf integer
 local function clear_references(buf)
   if vim.api.nvim_buf_is_valid(buf) then
@@ -77,6 +82,7 @@ local function clear_references(buf)
   end
 end
 
+---@private
 ---@param buf integer
 ---@param remove boolean
 local function invalidate(buf, remove)
@@ -94,6 +100,7 @@ local function invalidate(buf, remove)
   end
 end
 
+---@private
 ---@param line string
 ---@param encoding string
 ---@param character integer
@@ -110,6 +117,7 @@ local function byte_column(line, encoding, character)
   return fallback_ok and fallback or math.min(character, #line)
 end
 
+---@private
 ---@param buf integer
 ---@param result table[]?
 ---@param encoding string
@@ -135,6 +143,7 @@ local function references_from_result(buf, result, encoding)
   return refs
 end
 
+---@private
 ---@param refs pint.words.Reference[]
 ---@param line integer
 ---@param col integer
@@ -174,6 +183,7 @@ local function target(refs, line, col, count, cycle)
   return refs[index]
 end
 
+---@private
 ---@param buf integer
 ---@return table?
 local function highlight_client(buf)
@@ -183,6 +193,7 @@ local function highlight_client(buf)
   })[1]
 end
 
+---@private
 ---@param buf integer
 ---@param win integer
 ---@param callback? fun(refs:pint.words.Reference[])
@@ -264,6 +275,7 @@ local function refresh(buf, win, callback)
   end
 end
 
+---@private
 ---@param buf integer
 ---@param win integer
 local function schedule(buf, win)
@@ -314,6 +326,7 @@ function M.disable()
   end
 end
 
+---@private
 ---@param refs pint.words.Reference[]
 ---@param count integer
 ---@param cycle boolean
