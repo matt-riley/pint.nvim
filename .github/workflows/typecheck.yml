@@ -9,12 +9,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
-      contents: write
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
-        with:
-          ref: ${{ github.head_ref || github.ref_name }}
 
       - name: Install mise
         uses: jdx/mise-action@e6a8b3978addb5a52f2b4cd9d91eafa7f0ab959d # v4
@@ -28,7 +26,7 @@ jobs:
 
       - name: Run typecheck
         run: |
-          mkdir -p "${RUNNER_TEMP}/luals-log" .ci
+          mkdir -p "${RUNNER_TEMP}/luals-log"
           export VIMRUNTIME="$(nvim --headless -u NONE -c 'lua io.write(vim.env.VIMRUNTIME)' -c 'qa!' 2>/dev/null)"
           "${RUNNER_TEMP}/luals/bin/lua-language-server" \
             --check=. \
@@ -36,28 +34,17 @@ jobs:
             --check_format=json \
             --logpath="${RUNNER_TEMP}/luals-log" \
             || true
-          cp "${RUNNER_TEMP}/luals-log/check.json" .ci/luals-check.json
-
-      - name: Commit diagnostics
-        if: ${{ github.event_name == 'pull_request' }}
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -f .ci/luals-check.json
-          if git diff --cached --quiet; then
-            exit 0
-          fi
-          git commit -m "chore: capture LuaLS diagnostics"
-          git push origin HEAD:${{ github.head_ref }}
 
       - name: Report diagnostics
         run: |
           python - <<'PY'
           import json
+          import os
           import pathlib
           import sys
 
-          diagnostics = json.loads(pathlib.Path(".ci/luals-check.json").read_text() or "{}")
+          path = pathlib.Path(os.environ["RUNNER_TEMP"]) / "luals-log" / "check.json"
+          diagnostics = json.loads(path.read_text() or "{}")
           if not diagnostics:
               print("LuaLS diagnostics: none")
               sys.exit(0)
