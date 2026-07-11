@@ -404,8 +404,7 @@ local function build_rows(win)
   local autokeys = (M.config.autokeys or defaults.autokeys):gsub("[hjklq]", "")
   local auto_state = { index = 1 }
 
-  local header = type(M.config.header) == "string"
-      and vim.split(M.config.header, "\n", { plain = true })
+  local header = type(M.config.header) == "string" and vim.split(M.config.header, "\n", { plain = true })
     or M.config.header
     or {}
   for _, line in ipairs(header) do

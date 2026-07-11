@@ -115,10 +115,7 @@ local function line_indent(buf, ctx, lnum)
     if next_line == 0 or previous_line == 0 then
       value = 0
     else
-      value = math.min(
-        indent_width(buf, ctx.lines[next_line] or ""),
-        indent_width(buf, ctx.lines[previous_line] or "")
-      )
+      value = math.min(indent_width(buf, ctx.lines[next_line] or ""), indent_width(buf, ctx.lines[previous_line] or ""))
     end
   end
 

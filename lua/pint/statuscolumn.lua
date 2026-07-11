@@ -212,8 +212,7 @@ function M.get()
 
   local number = number_text(lnum, vim.v.relnum, window_options.number, window_options.relativenumber)
   local number_width = math.max(window_options.numberwidth, #number)
-  local number_slot = number == "" and string.rep(" ", number_width)
-    or ("%" .. number_width .. "s"):format(number)
+  local number_slot = number == "" and string.rep(" ", number_width) or ("%" .. number_width .. "s"):format(number)
 
   return table.concat({
     format_sign(left, M.config.sign_width),
