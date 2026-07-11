@@ -31,51 +31,21 @@ jobs:
 
           dashboard = Path("lua/pint/dashboard.lua")
           text = dashboard.read_text()
-          old_icons = '''  if _G.MiniIcons then
-            local icon, highlight = _G.MiniIcons.get("file", file)
-            if icon then
-              return icon, highlight or "PintDashboardIcon"
-            end
-          end
-          '''
-          new_icons = '''  local mini_icons = rawget(_G, "MiniIcons")
-          local get_icon = type(mini_icons) == "table" and rawget(mini_icons, "get") or nil
-          if type(get_icon) == "function" then
-            local icon, highlight = get_icon("file", file)
-            if icon then
-              return icon, highlight or "PintDashboardIcon"
-            end
-          end
-          '''
-          old_header = '''  local header = type(M.config.header) == "string" and vim.split(M.config.header, "\\n", { plain = true })
-            or M.config.header
-            or {}
-          '''
-          new_header = '''  local header = M.config.header
-          if type(header) == "string" then
-            header = vim.split(header, "\\n", { plain = true })
-          elseif type(header) ~= "table" then
-            header = {}
-          end
-          '''
+          old_icons = "  if _G.MiniIcons then\n    local icon, highlight = _G.MiniIcons.get(\"file\", file)\n    if icon then\n      return icon, highlight or \"PintDashboardIcon\"\n    end\n  end\n"
+          new_icons = "  local mini_icons = rawget(_G, \"MiniIcons\")\n  local get_icon = type(mini_icons) == \"table\" and rawget(mini_icons, \"get\") or nil\n  if type(get_icon) == \"function\" then\n    local icon, highlight = get_icon(\"file\", file)\n    if icon then\n      return icon, highlight or \"PintDashboardIcon\"\n    end\n  end\n"
+          old_header = "  local header = type(M.config.header) == \"string\" and vim.split(M.config.header, \"\\n\", { plain = true })\n    or M.config.header\n    or {}\n"
+          new_header = "  local header = M.config.header\n  if type(header) == \"string\" then\n    header = vim.split(header, \"\\n\", { plain = true })\n  elseif type(header) ~= \"table\" then\n    header = {}\n  end\n"
           if old_icons not in text or old_header not in text:
               raise SystemExit("dashboard replacement target not found")
-          dashboard.write_text(text.replace(old_icons, new_icons).replace(old_header, new_header))
+          dashboard.write_text(text.replace(old_icons, new_icons, 1).replace(old_header, new_header, 1))
 
           indent = Path("lua/pint/indent.lua")
           text = indent.read_text()
-          old_mapping = '''  local previous = vim.fn.maparg(lhs, mode, false, true)
-          if vim.tbl_isempty(previous) then
-            previous = nil
-          end
-          '''
-          new_mapping = '''  local existing = vim.fn.maparg(lhs, mode, false, true)
-          ---@type table?
-          local previous = vim.tbl_isempty(existing) and nil or existing
-          '''
+          old_mapping = "  local previous = vim.fn.maparg(lhs, mode, false, true)\n  if vim.tbl_isempty(previous) then\n    previous = nil\n  end\n"
+          new_mapping = "  local existing = vim.fn.maparg(lhs, mode, false, true)\n  ---@type table?\n  local previous = vim.tbl_isempty(existing) and nil or existing\n"
           if old_mapping not in text:
               raise SystemExit("indent replacement target not found")
-          indent.write_text(text.replace(old_mapping, new_mapping))
+          indent.write_text(text.replace(old_mapping, new_mapping, 1))
           PY
 
       - name: Format Lua
