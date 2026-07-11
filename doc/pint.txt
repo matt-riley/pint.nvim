@@ -18,11 +18,17 @@ Plugin configuration.
 Class ~
 {pint.Config}
 Fields ~
+{style} `(optional)` `(pint.Style)`
 {dashboard} `(optional)` `(pint.dashboard.Config|false)`
 {notifier} `(optional)` `(pint.notifier.Config|false)`
 {statuscolumn} `(optional)` `(pint.statuscolumn.Config|false)`
 {indent} `(optional)` `(pint.indent.Config|false)`
 {words} `(optional)` `(pint.words.Config|false)`
+
+------------------------------------------------------------------------------
+                                                                   *M.restore()*
+                                 `M.restore`()
+Disable every Pint module and release the state Pint owns.
 
 ------------------------------------------------------------------------------
                                                                      *M.setup()*
@@ -37,6 +43,64 @@ Parameters ~
 
 ==============================================================================
 ------------------------------------------------------------------------------
+Class ~
+{pint.StyleAnimation}
+Fields ~
+{enabled} `(optional)` `(boolean)`
+{duration} `(optional)` `(integer)`
+{fps} `(optional)` `(integer)`
+
+------------------------------------------------------------------------------
+Class ~
+{pint.Style}
+Fields ~
+{border} `(optional)` `(string)`
+{icons} `(optional)` `(boolean)`
+{animation} `(optional)` `(pint.StyleAnimation)`
+
+------------------------------------------------------------------------------
+                                                                     *M.setup()*
+                               `M.setup`({opts})
+Parameters ~
+{opts} `(optional)` `(pint.Style)`
+
+------------------------------------------------------------------------------
+                                                                    *M.border()*
+                              `M.border`({value})
+Parameters ~
+{value} `(optional)` `(string)`
+Return ~
+`(string)`
+
+------------------------------------------------------------------------------
+                                                               *M.clamp_float()*
+                            `M.clamp_float`({opts})
+Parameters ~
+{opts} `(table)`
+Return ~
+`(table)`
+
+------------------------------------------------------------------------------
+                                                                  *M.truncate()*
+                       `M.truncate`({text}, {max_width})
+Parameters ~
+{text} `(string)`
+{max_width} `(integer)`
+Return ~
+`(string)`
+
+------------------------------------------------------------------------------
+                                                                      *M.icon()*
+                          `M.icon`({kind}, {fallback})
+Parameters ~
+{kind} `(string)`
+{fallback} `(string)`
+Return ~
+`(string)`
+
+
+==============================================================================
+------------------------------------------------------------------------------
                                                                 *pint-dashboard*
 pint.dashboard
 
@@ -46,19 +110,20 @@ Startup dashboard with header, keyed actions, recent files, and custom sections.
 Class ~
 {pint.dashboard.Key}
 Fields ~
-{icon} `(optional)` `(string)` Icon (usually a Nerd Font glyph)
-{key} `(string)` Single key that triggers the action
+{icon} `(optional)` `(string)`
+{key} `(string)`
 {desc} `(string)`
-{action} `(string|fun())` Keys (starting with "<" or ":") or a function
-{enabled} `(optional)` `(boolean|fun():boolean)` When false, the key row is hidden
-{hidden} `(optional)` `(boolean)` When true, the row is hidden but its keymap is still active
+{action} `(string|fun())`
+{enabled} `(optional)` `(boolean|fun():boolean)`
+{hidden} `(optional)` `(boolean)`
 
 ------------------------------------------------------------------------------
 Class ~
 {pint.dashboard.Item}
 Fields ~
-{label} `(string)`
-{action} `(string|fun())`
+{label} `(string|{ [1]: string, hl?: string }[])`
+{action} `(optional)` `(string|fun())`
+{icon} `(optional)` `(string)`
 
 ------------------------------------------------------------------------------
 Class ~
@@ -67,38 +132,222 @@ Fields ~
 {title} `(string)`
 {icon} `(optional)` `(string)`
 {items} `(fun(): pint.dashboard.Item[])`
-{gap} `(optional)` `(integer)` Empty lines between child items
-{padding} `(optional)` `(integer|{bottom?:integer, top?:integer, [1]?:integer, [2]?:integer})` Padding around the section
-{indent} `(optional)` `(integer)` Spaces to indent child items
-{enabled} `(optional)` `(boolean|fun():boolean)` When false, the section is hidden
+{gap} `(optional)` `(integer)`
+{padding} `(optional)` `(integer|{bottom?:integer, top?:integer, [1]?:integer, [2]?:integer})`
+{indent} `(optional)` `(integer)`
+{enabled} `(optional)` `(boolean|fun():boolean)`
 
 ------------------------------------------------------------------------------
-Dashboard configuration.
 Class ~
 {pint.dashboard.Config}
 Fields ~
-{header} `(optional)` `(string|string[])` ASCII-art header (string is split on newlines)
+{header} `(optional)` `(string|string[])`
 {keys} `(optional)` `(pint.dashboard.Key[])`
-{recent} `(optional)` `({enabled?: boolean, cwd?: boolean, limit?: integer, filter?: fun(file: string): boolean}|false)` Set `false` to disable the recent-files section
+{recent} `(optional)` `({enabled?:boolean, cwd?:boolean, limit?:integer, filter?:fun(file:string):boolean}|false)`
 {sections} `(optional)` `(pint.dashboard.Section[])`
-{autostart} `(optional)` `(boolean)` Open when Neovim starts with no arguments. Default: true
-{width} `(optional)` `(integer)` Maximum content width. Auto-detected when nil.
-{autokeys} `(optional)` `(string)` Sequence of chars for auto-assigned keys (default: 1-9, a-z)
+{autostart} `(optional)` `(boolean)`
+{width} `(optional)` `(integer)`
+{autokeys} `(optional)` `(string)`
+{footer} `(optional)` `(fun(): string|{)` [1]: string, hl?: string }[]|nil
 
 ------------------------------------------------------------------------------
 Class ~
 {pint.dashboard.Row}
 Fields ~
-{text} `(string|(string|{ [1]: string, hl?: string })[])`
+{segments} `({ [1]: string, hl?: string }[])`
 {action} `(optional)` `(string|fun())`
 {key} `(optional)` `(string)`
 {align} `(optional)` "`(center)`"
-{footer} `(optional)` `(boolean)`
+{hidden} `(optional)` `(boolean)`
+
+------------------------------------------------------------------------------
+                                                                     *instances*
+                                  `instances`
+Type ~
+`(table<integer, table>)`
+
+------------------------------------------------------------------------------
+                                                                     *enabled()*
+                               `enabled`({value})
+Parameters ~
+{value} `(boolean|fun():boolean|nil)`
+Return ~
+`(boolean)`
+
+------------------------------------------------------------------------------
+                                                             *section_padding()*
+                          `section_padding`({padding})
+Parameters ~
+{padding} `(integer|table|nil)`
+Return ~
+`(integer)` top, integer bottom
+
+------------------------------------------------------------------------------
+                                                                 *path_inside()*
+                         `path_inside`({root}, {file})
+Parameters ~
+{root} `(string)`
+{file} `(string)`
+Return ~
+`(boolean)`
+
+------------------------------------------------------------------------------
+                                                                *recent_files()*
+                                `recent_files`()
+Return ~
+`(string[])`
+
+------------------------------------------------------------------------------
+                                                                         *run()*
+                                `run`({action})
+Parameters ~
+{action} `(string|fun())`
+
+------------------------------------------------------------------------------
+                                                                   *file_icon()*
+                              `file_icon`({file})
+Parameters ~
+{file} `(string)`
+Return ~
+`(string)` icon, string highlight
+
+------------------------------------------------------------------------------
+                                                                        *tail()*
+                            `tail`({text}, {width})
+Parameters ~
+{text} `(string)`
+{width} `(integer)`
+Return ~
+`(string)`
+
+------------------------------------------------------------------------------
+                                                               *path_segments()*
+                  `path_segments`({file}, {width}, {relative})
+Parameters ~
+{file} `(string)`
+{width} `(integer)`
+{relative} `(boolean)`
+Return ~
+`({ [1]: string, hl?: string }[])`
+
+------------------------------------------------------------------------------
+                                                              *segments_width()*
+                          `segments_width`({segments})
+Parameters ~
+{segments} `({ [1]: string, hl?: string }[])`
+Return ~
+`(integer)`
+
+------------------------------------------------------------------------------
+                                                                *fit_segments()*
+                      `fit_segments`({segments}, {width})
+Parameters ~
+{segments} `({ [1]: string, hl?: string }[])`
+{width} `(integer)`
+Return ~
+`({ [1]: string, hl?: string }[])`
+
+------------------------------------------------------------------------------
+                                                                    *with_key()*
+                     `with_key`({segments}, {key}, {width})
+Parameters ~
+{segments} `({ [1]: string, hl?: string }[])`
+{key} `(string)`
+{width} `(integer)`
+Return ~
+`({ [1]: string, hl?: string }[])`
+
+------------------------------------------------------------------------------
+                                                                *next_autokey()*
+                  `next_autokey`({sequence}, {used}, {state})
+Return ~
+`(string)`
+
+------------------------------------------------------------------------------
+                                                                       *blank()*
+                                `blank`({rows})
+Parameters ~
+{rows} `(pint.dashboard.Row[])`
+
+------------------------------------------------------------------------------
+                                                                 *add_section()*
+`add_section`({rows}, {section}, {max_width}, {used}, {autokeys}, {auto_state})
+Parameters ~
+{rows} `(pint.dashboard.Row[])`
+{section} `(pint.dashboard.Section)`
+{max_width} `(integer)`
+{used} `(table<string,boolean>)`
+{autokeys} `(string)`
+{auto_state} `({index:integer})`
+
+------------------------------------------------------------------------------
+                                                                  *build_rows()*
+                              `build_rows`({win})
+Parameters ~
+{win} `(integer)`
+Return ~
+`(pint.dashboard.Row[])` rows, { [1]: string, hl?: string }[]? footer
+
+------------------------------------------------------------------------------
+                                                             *render_segments()*
+                     `render_segments`({segments}, {left})
+Parameters ~
+{segments} `({ [1]: string, hl?: string }[])`
+{left} `(integer)`
+Return ~
+`(string)` line, {col:integer,end_col:integer,hl:string}[] marks
+
+------------------------------------------------------------------------------
+                                                                       *paint()*
+                    `paint`({buf}, {win}, {rows}, {footer})
+Parameters ~
+{buf} `(integer)`
+{win} `(integer)`
+{rows} `(pint.dashboard.Row[])`
+{footer} `(optional)` `({ [1]: string, hl?: string }[])`
+Return ~
+`(table)` context
+
+------------------------------------------------------------------------------
+                                                            *restore_instance()*
+                         `restore_instance`({instance})
+Parameters ~
+{instance} `(table)`
+
+------------------------------------------------------------------------------
+                                                           *clear_action_maps()*
+                        `clear_action_maps`({instance})
+Parameters ~
+{instance} `(table)`
+
+------------------------------------------------------------------------------
+                                                            *bind_action_maps()*
+                         `bind_action_maps`({instance})
+Parameters ~
+{instance} `(table)`
+
+------------------------------------------------------------------------------
+                                                            *refresh_instance()*
+                         `refresh_instance`({instance})
+Parameters ~
+{instance} `(table)`
 
 ------------------------------------------------------------------------------
                                                                       *M.open()*
                                    `M.open`()
 Open the dashboard in the current window.
+
+------------------------------------------------------------------------------
+                                                                   *M.restore()*
+                                 `M.restore`()
+Disable dashboard autostart and close active dashboard buffers.
+
+------------------------------------------------------------------------------
+                                                                     *M.setup()*
+                               `M.setup`({opts})
+Configure the dashboard and open it on argument-less startup.
+Parameters ~
+{opts} `(optional)` `(pint.dashboard.Config)`
 
 
 ==============================================================================
@@ -115,21 +364,113 @@ Class ~
 Fields ~
 {timeout} `(optional)` `(integer)` Milliseconds before a notification hides. Default: 2000
 {margin} `(optional)` `({top: integer, right: integer, bottom: integer})`
-{border} `(optional)` `(string)` Window border. Default: vim.o.winborder or "rounded"
+{border} `(optional)` `(string)` Window border. Default: shared Pint style
 {top_down} `(optional)` `(boolean)` Stack new notifications at the top. Default: false
-{max_history} `(optional)` `(integer)` Maximum history entries to retain. Default: 200
+{max_history} `(optional)` `(integer)` Maximum history entries to retain. Zero means unlimited. Default: 200
+{max_width} `(optional)` `(number|integer)` Maximum width as a ratio (<= 1) or columns. Default: 0.4
+{max_height} `(optional)` `(number|integer)` Maximum height as a ratio (<= 1) or rows. Default: 0.4
+
+------------------------------------------------------------------------------
+Class ~
+{pint.notifier.Item}
+Fields ~
+{id} `(string|integer)`
+{msg} `(string)`
+{level} `(integer)`
+{title} `(optional)` `(string)`
+{icon} `(optional)` `(string)`
+{time} `(integer)`
+{win} `(optional)` `(integer)`
+{buf} `(optional)` `(integer)`
+{timeout_timer} `(optional)` `(uv.uv_timer_t)`
+{animation_timer} `(optional)` `(uv.uv_timer_t)`
 
 ------------------------------------------------------------------------------
                                                                         *active*
                                     `active`
 Type ~
-`(pint.notifier.Item[])` active notifications, in display order
+`(pint.notifier.Item[])`
 
 ------------------------------------------------------------------------------
                                                                        *history*
                                    `history`
 Type ~
-`({id?: string|integer, msg: string, level: integer, title?: string, time: integer}[])`
+`({id?: string|integer, msg:string, level:integer, title?:string, time:integer}[])`
+
+------------------------------------------------------------------------------
+                                                                *resolve_size()*
+                  `resolve_size`({value}, {total}, {minimum})
+Parameters ~
+{value} `(number|integer)`
+{total} `(integer)`
+{minimum} `(integer)`
+Return ~
+`(integer)`
+
+------------------------------------------------------------------------------
+                                                                  *stop_timer()*
+                             `stop_timer`({timer})
+Parameters ~
+{timer} `(uv.uv_timer_t?)`
+
+------------------------------------------------------------------------------
+                                                              *stop_animation()*
+                            `stop_animation`({item})
+Parameters ~
+{item} `(pint.notifier.Item)`
+
+------------------------------------------------------------------------------
+                                                                  *close_item()*
+                              `close_item`({item})
+Parameters ~
+{item} `(pint.notifier.Item)`
+
+------------------------------------------------------------------------------
+                                                                      *settle()*
+                    `settle`({item}, {row}, {col}, {blend})
+Parameters ~
+{item} `(pint.notifier.Item)`
+{row} `(number)`
+{col} `(number)`
+{blend} `(integer)`
+
+------------------------------------------------------------------------------
+                                                                  *transition()*
+          `transition`({item}, {row}, {col}, {closing}, {on_complete})
+Parameters ~
+{item} `(pint.notifier.Item)`
+{row} `(number)`
+{col} `(number)`
+{closing} `(optional)` `(boolean)`
+{on_complete} `(optional)` `(fun())`
+
+------------------------------------------------------------------------------
+                                                               *message_lines()*
+               `message_lines`({text}, {max_width}, {max_height})
+Parameters ~
+{text} `(string)`
+{max_width} `(integer)`
+{max_height} `(integer)`
+Return ~
+`(string[])`
+
+------------------------------------------------------------------------------
+                                                                      *render()*
+                                `render`({item})
+Parameters ~
+{item} `(pint.notifier.Item)`
+
+------------------------------------------------------------------------------
+                                                              *record_history()*
+                           `record_history`({entry})
+Parameters ~
+{entry} `({id?:string|integer,msg:string,level:integer,title?:string,time:integer})`
+
+------------------------------------------------------------------------------
+                                                                   *M.dismiss()*
+                               `M.dismiss`({id})
+Parameters ~
+{id} `(optional)` `(string|integer)`
 
 ------------------------------------------------------------------------------
                                                                     *M.notify()*
@@ -138,7 +479,7 @@ Show a notification. Signature matches |vim.notify()|.
 Parameters ~
 {msg} `(string)`
 {level} `(optional)` `(integer)`
-{opts} `(optional)` `({title?: string, icon?: string, id?: string|integer, timeout?: integer})`
+{opts} `(optional)` `({title?:string, icon?:string, id?:string|integer, timeout?:integer})`
 
 ------------------------------------------------------------------------------
                                                               *M.show_history()*
@@ -148,7 +489,14 @@ Show notification history in a floating window.
 ------------------------------------------------------------------------------
                                                                    *M.restore()*
                                  `M.restore`()
-Restore the previous |vim.notify()| handler.
+Restore the previous |vim.notify()| handler and close Pint notifications.
+
+------------------------------------------------------------------------------
+                                                                     *M.setup()*
+                               `M.setup`({opts})
+Install Pint as the |vim.notify()| handler.
+Parameters ~
+{opts} `(optional)` `(pint.notifier.Config)`
 
 
 ==============================================================================
@@ -159,20 +507,111 @@ pint.statuscolumn
 Statuscolumn layout: `[sign] [number] [fold/git sign]`.
 
 ------------------------------------------------------------------------------
+Class ~
+{pint.statuscolumn.Folds}
+Fields ~
+{open} `(optional)` `(boolean)` Show open-fold markers
+{git_hl} `(optional)` `(boolean)` Reuse a Git sign highlight for fold markers
+{precedence} `(optional)` "`(git)`"|"fold" Which item wins when a Git sign and fold marker share the right slot
+
+------------------------------------------------------------------------------
 Statuscolumn configuration.
 Class ~
 {pint.statuscolumn.Config}
 Fields ~
-{folds} `(optional)` `({open: boolean, git_hl: boolean})` Show open-fold markers; reuse git sign hl for fold icons
-{git_patterns} `(optional)` `(string[])` Sign/extmark name patterns treated as git signs
+{folds} `(optional)` `(pint.statuscolumn.Folds)`
+{git_patterns} `(optional)` `(string[])` Sign/extmark name patterns treated as Git signs
+{sign_width} `(optional)` `(integer)` Width of the left sign slot. Default: 2
+{right_width} `(optional)` `(integer)` Width of the fold/Git slot. Default: 2
+{separator} `(optional)` `(string)` Text between line number and right slot. Default: " "
+
+------------------------------------------------------------------------------
+                                                                         *cache*
+                                    `cache`
+Type ~
+`(table<integer, table<integer, {name:string, text:string, texthl:string?, priority:integer}[]>>)`
+
+------------------------------------------------------------------------------
+                                                                      *is_git()*
+                                `is_git`({name})
+Parameters ~
+{name} `(string)`
+Return ~
+`(boolean)`
+
+------------------------------------------------------------------------------
+                                                                         *fit()*
+                             `fit`({text}, {width})
+Parameters ~
+{text} `(string)`
+{width} `(integer)`
+Return ~
+`(string)`
+
+------------------------------------------------------------------------------
+                                                                 *format_sign()*
+                         `format_sign`({sign}, {width})
+Parameters ~
+{sign} `(optional)` `({name:string, text:string, texthl:string?, priority:integer})`
+{width} `(integer)`
+Return ~
+`(string)`
+
+------------------------------------------------------------------------------
+                                                                 *number_text()*
+          `number_text`({lnum}, {relnum}, {number}, {relativenumber})
+Parameters ~
+{lnum} `(integer)`
+{relnum} `(integer)`
+{number} `(boolean)`
+{relativenumber} `(boolean)`
+Return ~
+`(string)`
+
+------------------------------------------------------------------------------
+                                                                  *renderable()*
+                            `renderable`({virtnum})
+Parameters ~
+{virtnum} `(integer)`
+Return ~
+`(boolean)`
+
+------------------------------------------------------------------------------
+                                                                *buffer_signs()*
+                             `buffer_signs`({buf})
+Parameters ~
+{buf} `(integer)`
+Return ~
+`(table<integer, {name:string, text:string, texthl:string?, priority:integer}[]>)`
+
+------------------------------------------------------------------------------
+                                                                   *fold_sign()*
+                       `fold_sign`({win}, {lnum}, {git})
+Parameters ~
+{win} `(integer)`
+{lnum} `(integer)`
+{git} `(optional)` `({name:string, text:string, texthl:string?, priority:integer})`
+Return ~
+`({name:string, text:string, texthl:string?, priority:integer}?)`
 
 ------------------------------------------------------------------------------
                                                                        *M.get()*
                                    `M.get`()
-Render the statuscolumn for the current window. Use via:
-`vim.o.statuscolumn = "%!v:lua.require'pint.statuscolumn'.get()"`
+Render the statuscolumn for the current window.
 Return ~
 `(string)`
+
+------------------------------------------------------------------------------
+                                                                   *M.restore()*
+                                 `M.restore`()
+Restore the previous global statuscolumn when Pint still owns it.
+
+------------------------------------------------------------------------------
+                                                                     *M.setup()*
+                               `M.setup`({opts})
+Set 'statuscolumn' globally and keep the sign cache fresh.
+Parameters ~
+{opts} `(optional)` `(pint.statuscolumn.Config)`
 
 
 ==============================================================================
@@ -188,11 +627,134 @@ Class ~
 {pint.indent.Config}
 Fields ~
 {char} `(optional)` `(string)` Guide character. Default: "│"
+{scope_char} `(optional)` `(string)` Current-scope guide character. Default: same as `char`
 {hl} `(optional)` `(string)` Guide highlight group. Default: "PintIndent"
 {scope_hl} `(optional)` `(string)` Current-scope guide highlight. Default: "PintIndentScope"
 {scope} `(optional)` `(boolean)` Highlight the current scope's guide. Default: true
 {textobject} `(optional)` `(boolean)` Map ii/ai and [i/]i. Default: true
 {exclude_filetypes} `(optional)` `(string[])` Filetypes to skip
+
+------------------------------------------------------------------------------
+                                                                        *scopes*
+                                    `scopes`
+Type ~
+`(table<integer, {top:integer,bottom:integer,indent:integer}>)`
+
+------------------------------------------------------------------------------
+                                                                        *redraw*
+                                    `redraw`
+Type ~
+`(table<integer, {lines:string[], indents:table<integer,integer>}>)`
+
+------------------------------------------------------------------------------
+                                                                *installed_maps*
+                                `installed_maps`
+Type ~
+`({mode:string,lhs:string,desc:string,previous:table?}[])`
+
+------------------------------------------------------------------------------
+                                                                *indent_width()*
+                         `indent_width`({buf}, {line})
+Parameters ~
+{buf} `(integer)`
+{line} `(string)`
+Return ~
+`(integer)`
+
+------------------------------------------------------------------------------
+                                                         *first_nonblank_byte()*
+                         `first_nonblank_byte`({line})
+Parameters ~
+{line} `(string)`
+Return ~
+`(integer)`
+
+------------------------------------------------------------------------------
+                                                                 *context_for()*
+                              `context_for`({buf})
+Parameters ~
+{buf} `(integer)`
+Return ~
+`({lines:string[], indents:table<integer,integer>})`
+
+------------------------------------------------------------------------------
+                                                                    *nonblank()*
+                    `nonblank`({ctx}, {from}, {to}, {step})
+Parameters ~
+{ctx} `({lines:string[], indents:table<integer,integer>})`
+{from} `(integer)`
+{to} `(integer)`
+{step} `(integer)`
+Return ~
+`(integer)`
+
+------------------------------------------------------------------------------
+                                                                 *line_indent()*
+                      `line_indent`({buf}, {ctx}, {lnum})
+Parameters ~
+{buf} `(integer)`
+{ctx} `({lines:string[], indents:table<integer,integer>})`
+{lnum} `(integer)`
+Return ~
+`(integer)`
+
+------------------------------------------------------------------------------
+                                                                 *scope_range()*
+                          `scope_range`({win}, {ctx})
+Parameters ~
+{win} `(integer)`
+{ctx} `(optional)` `({lines:string[], indents:table<integer,integer>})`
+Return ~
+`(integer)` top, integer bottom, integer indent
+
+------------------------------------------------------------------------------
+                                                                    *excluded()*
+                               `excluded`({buf})
+Parameters ~
+{buf} `(integer)`
+Return ~
+`(boolean)`
+
+------------------------------------------------------------------------------
+                                                                 *install_map()*
+                  `install_map`({mode}, {lhs}, {rhs}, {desc})
+Parameters ~
+{mode} `(string)`
+{lhs} `(string)`
+{rhs} `(string|function)`
+{desc} `(string)`
+
+------------------------------------------------------------------------------
+                                                             *restore_mapping()*
+                          `restore_mapping`({mapping})
+Parameters ~
+{mapping} `(table)`
+
+------------------------------------------------------------------------------
+                                                                *M.textobject()*
+                            `M.textobject`({outer})
+Select or operate on the current indent scope.
+Parameters ~
+{outer} `(boolean)` Include the line above and trailing line for `ai`
+
+------------------------------------------------------------------------------
+                                                                      *M.jump()*
+                               `M.jump`({bottom})
+Jump to the top or bottom edge of the current indent scope.
+Parameters ~
+{bottom} `(boolean)` Jump to the bottom edge instead of the top
+
+------------------------------------------------------------------------------
+                                                                   *M.restore()*
+                                 `M.restore`()
+Disable indent guides and restore mappings Pint still owns.
+
+------------------------------------------------------------------------------
+                                                                     *M.setup()*
+                               `M.setup`({opts})
+Enable indent guides.
+Parameters ~
+{opts} `(optional)` `(pint.indent.Config)`
 
 
 ==============================================================================
@@ -209,12 +771,118 @@ Class ~
 Fields ~
 {debounce} `(optional)` `(integer)` Milliseconds of cursor rest before highlighting. Default: 200
 {enabled} `(optional)` `(boolean)` Start enabled. Default: true
+{notify} `(optional)` `(boolean)` Notify when a requested jump has no target. Default: false
 
 ------------------------------------------------------------------------------
-                                                                    *refs_cache*
-                                  `refs_cache`
+Class ~
+{pint.words.Reference}
+Fields ~
+{line} `(integer)` Zero-based line
+{character} `(integer)` Zero-based byte column
+
+------------------------------------------------------------------------------
+Class ~
+{pint.words.State}
+Fields ~
+{generation} `(integer)`
+{refs} `(pint.words.Reference[])`
+{timer} `(optional)` `(uv.uv_timer_t)`
+{request_id} `(optional)` `(integer)`
+{client_id} `(optional)` `(integer)`
+
+------------------------------------------------------------------------------
+                                                                        *states*
+                                    `states`
 Type ~
-`(table<integer, {line: integer, character: integer}[]>)`
+`(table<integer, pint.words.State>)`
+
+------------------------------------------------------------------------------
+                                                                   *state_for()*
+                               `state_for`({buf})
+Parameters ~
+{buf} `(integer)`
+Return ~
+`(pint.words.State)`
+
+------------------------------------------------------------------------------
+                                                                  *stop_timer()*
+                             `stop_timer`({timer})
+Parameters ~
+{timer} `(uv.uv_timer_t?)`
+
+------------------------------------------------------------------------------
+                                                              *cancel_request()*
+                           `cancel_request`({state})
+Parameters ~
+{state} `(pint.words.State)`
+
+------------------------------------------------------------------------------
+                                                            *clear_references()*
+                           `clear_references`({buf})
+Parameters ~
+{buf} `(integer)`
+
+------------------------------------------------------------------------------
+                                                                  *invalidate()*
+                         `invalidate`({buf}, {remove})
+Parameters ~
+{buf} `(integer)`
+{remove} `(boolean)`
+
+------------------------------------------------------------------------------
+                                                                 *byte_column()*
+                 `byte_column`({line}, {encoding}, {character})
+Parameters ~
+{line} `(string)`
+{encoding} `(string)`
+{character} `(integer)`
+Return ~
+`(integer)`
+
+------------------------------------------------------------------------------
+                                                      *references_from_result()*
+             `references_from_result`({buf}, {result}, {encoding})
+Parameters ~
+{buf} `(integer)`
+{result} `(table[]?)`
+{encoding} `(string)`
+Return ~
+`(pint.words.Reference[])`
+
+------------------------------------------------------------------------------
+                                                                      *target()*
+               `target`({refs}, {line}, {col}, {count}, {cycle})
+Parameters ~
+{refs} `(pint.words.Reference[])`
+{line} `(integer)`
+{col} `(integer)`
+{count} `(integer)`
+{cycle} `(boolean)`
+Return ~
+`(pint.words.Reference)` `(optional)`
+
+------------------------------------------------------------------------------
+                                                            *highlight_client()*
+                           `highlight_client`({buf})
+Parameters ~
+{buf} `(integer)`
+Return ~
+`(table)` `(optional)`
+
+------------------------------------------------------------------------------
+                                                                     *refresh()*
+                      `refresh`({buf}, {win}, {callback})
+Parameters ~
+{buf} `(integer)`
+{win} `(integer)`
+{callback} `(optional)` `(fun(refs:pint.words.Reference[]))`
+
+------------------------------------------------------------------------------
+                                                                    *schedule()*
+                            `schedule`({buf}, {win})
+Parameters ~
+{buf} `(integer)`
+{win} `(integer)`
 
 ------------------------------------------------------------------------------
                                                                 *M.is_enabled()*
@@ -231,7 +899,18 @@ Enable reference highlighting.
 ------------------------------------------------------------------------------
                                                                    *M.disable()*
                                  `M.disable`()
-Disable reference highlighting and clear existing highlights.
+Disable reference highlighting and clear tracked references.
+
+------------------------------------------------------------------------------
+                                                                     *jump_to()*
+                   `jump_to`({refs}, {count}, {cycle}, {win})
+Parameters ~
+{refs} `(pint.words.Reference[])`
+{count} `(integer)`
+{cycle} `(boolean)`
+{win} `(integer)`
+Return ~
+`(boolean)`
 
 ------------------------------------------------------------------------------
                                                                       *M.jump()*
@@ -240,6 +919,18 @@ Jump to a reference of the symbol under the cursor.
 Parameters ~
 {count} `(integer)` 1 for next, -1 for previous
 {cycle} `(optional)` `(boolean)` Wrap around at the ends. Default: true
+
+------------------------------------------------------------------------------
+                                                                   *M.restore()*
+                                 `M.restore`()
+Disable automatic highlighting and release all tracked state.
+
+------------------------------------------------------------------------------
+                                                                     *M.setup()*
+                               `M.setup`({opts})
+Set up autocmds for automatic reference highlighting.
+Parameters ~
+{opts} `(optional)` `(pint.words.Config)`
 
 
  vim:tw=78:ts=8:noet:ft=help:norl:
