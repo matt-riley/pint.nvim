@@ -31,7 +31,12 @@ jobs:
             --checklevel=Warning \
             --logpath="${RUNNER_TEMP}/luals-log" \
             || true
-          cp "${RUNNER_TEMP}/luals-log/check.json" .ci/luals-check.json
+          check_file="$(find "${RUNNER_TEMP}/luals-log" -name check.json -type f -print -quit)"
+          if [ -z "$check_file" ]; then
+            printf '[]\n' > .ci/luals-check.json
+          else
+            cp "$check_file" .ci/luals-check.json
+          fi
 
       - name: Commit feature-branch diagnostics
         if: ${{ github.event_name == 'pull_request' }}
