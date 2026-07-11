@@ -1,0 +1,400 @@
+{
+    "file:///home/runner/work/pint.nvim/pint.nvim/./lua/pint/dashboard.lua": [
+        {
+            "code": "undefined-field",
+            "message": "Undefined field `MiniIcons`.",
+            "range": {
+                "end": {
+                    "character": 17,
+                    "line": 185
+                },
+                "start": {
+                    "character": 8,
+                    "line": 185
+                }
+            },
+            "severity": 2,
+            "source": "Lua Diagnostics."
+        },
+        {
+            "code": "undefined-field",
+            "message": "Undefined field `MiniIcons`.",
+            "range": {
+                "end": {
+                    "character": 40,
+                    "line": 186
+                },
+                "start": {
+                    "character": 31,
+                    "line": 186
+                }
+            },
+            "severity": 2,
+            "source": "Lua Diagnostics."
+        }
+    ],
+    "file:///home/runner/work/pint.nvim/pint.nvim/./lua/pint/notifier.lua": [
+        {
+            "code": "undefined-doc-name",
+            "message": "Undefined type or alias `uv.uv_timer_t`.",
+            "range": {
+                "end": {
+                    "character": 38,
+                    "line": 43
+                },
+                "start": {
+                    "character": 25,
+                    "line": 43
+                }
+            },
+            "severity": 2,
+            "source": "Lua Diagnostics."
+        },
+        {
+            "code": "undefined-doc-name",
+            "message": "Undefined type or alias `uv.uv_timer_t`.",
+            "range": {
+                "end": {
+                    "character": 40,
+                    "line": 44
+                },
+                "start": {
+                    "character": 27,
+                    "line": 44
+                }
+            },
+            "severity": 2,
+            "source": "Lua Diagnostics."
+        },
+        {
+            "code": "undefined-doc-name",
+            "message": "Undefined type or alias `uv.uv_timer_t`.",
+            "range": {
+                "end": {
+                    "character": 29,
+                    "line": 75
+                },
+                "start": {
+                    "character": 16,
+                    "line": 75
+                }
+            },
+            "severity": 2,
+            "source": "Lua Diagnostics."
+        },
+        {
+            "code": "undefined-field",
+            "message": "Undefined field `stop`.",
+            "range": {
+                "end": {
+                    "character": 12,
+                    "line": 80
+                },
+                "start": {
+                    "character": 8,
+                    "line": 80
+                }
+            },
+            "severity": 2,
+            "source": "Lua Diagnostics."
+        },
+        {
+            "code": "undefined-field",
+            "message": "Undefined field `start`.",
+            "range": {
+                "end": {
+                    "character": 28,
+                    "line": 163
+                },
+                "start": {
+                    "character": 23,
+                    "line": 163
+                }
+            },
+            "severity": 2,
+            "source": "Lua Diagnostics."
+        },
+        {
+            "code": "undefined-field",
+            "message": "Undefined field `close`.",
+            "range": {
+                "end": {
+                    "character": 15,
+                    "line": 82
+                },
+                "start": {
+                    "character": 10,
+                    "line": 82
+                }
+            },
+            "severity": 2,
+            "source": "Lua Diagnostics."
+        },
+        {
+            "code": "undefined-field",
+            "message": "Undefined field `start`.",
+            "range": {
+                "end": {
+                    "character": 28,
+                    "line": 397
+                },
+                "start": {
+                    "character": 23,
+                    "line": 397
+                }
+            },
+            "severity": 2,
+            "source": "Lua Diagnostics."
+        },
+        {
+            "code": "undefined-field",
+            "message": "Undefined field `is_closing`.",
+            "range": {
+                "end": {
+                    "character": 25,
+                    "line": 81
+                },
+                "start": {
+                    "character": 15,
+                    "line": 81
+                }
+            },
+            "severity": 2,
+            "source": "Lua Diagnostics."
+        }
+    ],
+    "file:///home/runner/work/pint.nvim/pint.nvim/./lua/pint/words.lua": [
+        {
+            "code": "undefined-doc-name",
+            "message": "Undefined type or alias `uv.uv_timer_t`.",
+            "range": {
+                "end": {
+                    "character": 30,
+                    "line": 31
+                },
+                "start": {
+                    "character": 17,
+                    "line": 31
+                }
+            },
+            "severity": 2,
+            "source": "Lua Diagnostics."
+        },
+        {
+            "code": "undefined-doc-name",
+            "message": "Undefined type or alias `uv.uv_timer_t`.",
+            "range": {
+                "end": {
+                    "character": 29,
+                    "line": 48
+                },
+                "start": {
+                    "character": 16,
+                    "line": 48
+                }
+            },
+            "severity": 2,
+            "source": "Lua Diagnostics."
+        },
+        {
+            "code": "redundant-parameter",
+            "message": "This function expects a maximum of 0 argument(s) but instead it is receiving 1.",
+            "range": {
+                "end": {
+                    "character": 57,
+                    "line": 64
+                },
+                "start": {
+                    "character": 42,
+                    "line": 64
+                }
+            },
+            "severity": 2,
+            "source": "Lua Diagnostics."
+        },
+        {
+            "code": "redundant-parameter",
+            "message": "This function expects a maximum of 0 argument(s) but instead it is receiving 1.",
+            "range": {
+                "end": {
+                    "character": 3,
+                    "line": 182
+                },
+                "start": {
+                    "character": 29,
+                    "line": 179
+                }
+            },
+            "severity": 2,
+            "source": "Lua Diagnostics."
+        },
+        {
+            "code": "undefined-field",
+            "message": "Undefined field `stop`.",
+            "range": {
+                "end": {
+                    "character": 12,
+                    "line": 53
+                },
+                "start": {
+                    "character": 8,
+                    "line": 53
+                }
+            },
+            "severity": 2,
+            "source": "Lua Diagnostics."
+        },
+        {
+            "code": "undefined-field",
+            "message": "Undefined field `start`.",
+            "range": {
+                "end": {
+                    "character": 19,
+                    "line": 281
+                },
+                "start": {
+                    "character": 14,
+                    "line": 281
+                }
+            },
+            "severity": 2,
+            "source": "Lua Diagnostics."
+        },
+        {
+            "code": "undefined-field",
+            "message": "Undefined field `close`.",
+            "range": {
+                "end": {
+                    "character": 15,
+                    "line": 55
+                },
+                "start": {
+                    "character": 10,
+                    "line": 55
+                }
+            },
+            "severity": 2,
+            "source": "Lua Diagnostics."
+        },
+        {
+            "code": "undefined-field",
+            "message": "Undefined field `is_closing`.",
+            "range": {
+                "end": {
+                    "character": 25,
+                    "line": 54
+                },
+                "start": {
+                    "character": 15,
+                    "line": 54
+                }
+            },
+            "severity": 2,
+            "source": "Lua Diagnostics."
+        }
+    ],
+    "file:///home/runner/work/pint.nvim/pint.nvim/./tests/test_command.lua": [
+        {
+            "code": "duplicate-set-field",
+            "message": "Duplicate field `dismiss`.",
+            "range": {
+                "end": {
+                    "character": 18,
+                    "line": 21
+                },
+                "start": {
+                    "character": 2,
+                    "line": 21
+                }
+            },
+            "relatedInformation": [
+                {
+                    "location": {
+                        "range": {
+                            "end": {
+                                "character": 18,
+                                "line": 302
+                            },
+                            "start": {
+                                "character": 9,
+                                "line": 302
+                            }
+                        },
+                        "uri": "file:///home/runner/work/pint.nvim/pint.nvim/./lua/pint/notifier.lua"
+                    },
+                    "message": ""
+                }
+            ],
+            "severity": 2,
+            "source": "Lua Diagnostics."
+        },
+        {
+            "code": "duplicate-set-field",
+            "message": "Duplicate field `dismiss_all`.",
+            "range": {
+                "end": {
+                    "character": 22,
+                    "line": 35
+                },
+                "start": {
+                    "character": 2,
+                    "line": 35
+                }
+            },
+            "relatedInformation": [
+                {
+                    "location": {
+                        "range": {
+                            "end": {
+                                "character": 22,
+                                "line": 330
+                            },
+                            "start": {
+                                "character": 9,
+                                "line": 330
+                            }
+                        },
+                        "uri": "file:///home/runner/work/pint.nvim/pint.nvim/./lua/pint/notifier.lua"
+                    },
+                    "message": ""
+                }
+            ],
+            "severity": 2,
+            "source": "Lua Diagnostics."
+        }
+    ],
+    "file:///home/runner/work/pint.nvim/pint.nvim/./tests/test_pint.lua": [
+        {
+            "code": "need-check-nil",
+            "message": "Need check nil.",
+            "range": {
+                "end": {
+                    "character": 14,
+                    "line": 370
+                },
+                "start": {
+                    "character": 4,
+                    "line": 370
+                }
+            },
+            "severity": 2,
+            "source": "Lua Diagnostics."
+        },
+        {
+            "code": "undefined-field",
+            "message": "Undefined field `sub`.",
+            "range": {
+                "end": {
+                    "character": 18,
+                    "line": 370
+                },
+                "start": {
+                    "character": 15,
+                    "line": 370
+                }
+            },
+            "severity": 2,
+            "source": "Lua Diagnostics."
+        }
+    ]
+}
