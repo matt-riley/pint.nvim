@@ -183,8 +183,10 @@ end
 ---@param file string
 ---@return string icon, string highlight
 local function file_icon(file)
-  if _G.MiniIcons then
-    local icon, highlight = _G.MiniIcons.get("file", file)
+  local mini_icons = rawget(_G, "MiniIcons")
+  local get_icon = type(mini_icons) == "table" and rawget(mini_icons, "get") or nil
+  if type(get_icon) == "function" then
+    local icon, highlight = get_icon("file", file)
     if icon then
       return icon, highlight or "PintDashboardIcon"
     end
@@ -404,9 +406,12 @@ local function build_rows(win)
   local autokeys = (M.config.autokeys or defaults.autokeys):gsub("[hjklq]", "")
   local auto_state = { index = 1 }
 
-  local header = type(M.config.header) == "string" and vim.split(M.config.header, "\n", { plain = true })
-    or M.config.header
-    or {}
+  local header = M.config.header
+  if type(header) == "string" then
+    header = vim.split(header, "\n", { plain = true })
+  elseif type(header) ~= "table" then
+    header = {}
+  end
   for _, line in ipairs(header) do
     rows[#rows + 1] = {
       segments = fit_segments({ { line, hl = "PintDashboardHeader" } }, max_width),
