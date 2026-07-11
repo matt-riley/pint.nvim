@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.3](https://github.com/matt-riley/pint.nvim/compare/v0.1.2...v0.1.3) (2026-07-11)
+
+
+### Features
+
+* harden and polish Pint ([#9](https://github.com/matt-riley/pint.nvim/issues/9)) ([d672c2b](https://github.com/matt-riley/pint.nvim/commit/d672c2befc253c908c1065199b06a1302d9dab16))
+
 ## [0.1.2](https://github.com/matt-riley/pint.nvim/compare/v0.1.1...v0.1.2) (2026-06-14)
 
 
