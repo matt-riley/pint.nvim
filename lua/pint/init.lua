@@ -17,6 +17,7 @@ local M = {}
 
 --- Plugin configuration.
 ---@class pint.Config
+---@field style? pint.Style
 ---@field dashboard? pint.dashboard.Config|false
 ---@field notifier? pint.notifier.Config|false
 ---@field statuscolumn? pint.statuscolumn.Config|false
@@ -25,6 +26,7 @@ local M = {}
 
 ---@private
 local defaults = {
+  style = {},
   dashboard = {},
   notifier = {},
   statuscolumn = {},
@@ -38,6 +40,16 @@ M.config = vim.deepcopy(defaults)
 
 local modules = { "notifier", "statuscolumn", "indent", "words", "dashboard" }
 
+--- Disable every Pint module and release the state Pint owns.
+function M.restore()
+  for index = #modules, 1, -1 do
+    local ok, module = pcall(require, "pint." .. modules[index])
+    if ok and type(module.restore) == "function" then
+      module.restore()
+    end
+  end
+end
+
 --- Configure and enable the plugin's modules.
 ---
 --- Pass `false` for any module to disable it.
@@ -45,13 +57,13 @@ local modules = { "notifier", "statuscolumn", "indent", "words", "dashboard" }
 ---@param opts? pint.Config User configuration options
 function M.setup(opts)
   opts = opts or {}
+  M.restore()
   M.config = vim.tbl_deep_extend("force", vim.deepcopy(defaults), opts)
+  require("pint.ui").setup(M.config.style)
+
   for _, name in ipairs(modules) do
-    local mod = require("pint." .. name)
     if M.config[name] ~= false then
-      mod.setup(M.config[name])
-    elseif mod.restore then
-      mod.restore()
+      require("pint." .. name).setup(M.config[name])
     end
   end
 end
