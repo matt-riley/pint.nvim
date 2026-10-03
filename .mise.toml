@@ -16,12 +16,15 @@ fi
 """
 
 [tasks.test]
+depends = ["install"]
 run = "make test"
 
 [tasks.lint]
+depends = ["install"]
 run = "make lint"
 
 [tasks.fmt]
+depends = ["install"]
 run = "make format-check"
 
 [tasks.docs]
