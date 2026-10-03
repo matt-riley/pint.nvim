@@ -620,14 +620,16 @@ local function paint(buf, win, rows, footer)
   end
   vim.bo[buf].modifiable = false
 
+  local action_by_line = {}
+  for _, action in ipairs(actions) do
+    if action.lnum then
+      action_by_line[action.lnum] = action.action
+    end
+  end
+
   return {
     actions = actions,
-    action_by_line = vim.iter(actions):fold({}, function(result, action)
-      if action.lnum then
-        result[action.lnum] = action.action
-      end
-      return result
-    end),
+    action_by_line = action_by_line,
     left = base_left,
   }
 end

@@ -253,7 +253,7 @@ end
 local function install_map(mode, lhs, rhs, desc)
   local existing = vim.fn.maparg(lhs, mode, false, true)
   ---@type table?
-  local previous = vim.tbl_isempty(existing) and nil or existing
+  local previous = not vim.tbl_isempty(existing) and existing or nil
 
   local installed_desc = "pint: " .. desc
   vim.keymap.set(mode, lhs, rhs, { desc = installed_desc })
