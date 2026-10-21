@@ -124,6 +124,7 @@ require("pint").setup({
     duration = 200,
     easing = "ease-out-quad", -- "linear", "ease-out-quad", or function(t) -> number
     max_lines = 10000,
+    override = false, -- set true to replace existing global scroll mappings
   },
 
   -- Any module can be disabled with `module = false`.
@@ -148,7 +149,9 @@ end, { desc = "Previous reference" })
 
 Smooth scrolling is on when you call `require("pint").setup()` with no `scroll` options. Turn it off with `scroll = { enabled = false }`, `scroll = false` (skip the module entirely), or `:Pint scroll-disable`.
 
-It maps normal-mode `<C-d>`, `<C-u>`, `<C-f>`, `<C-b>`, `zz`, `zt`, and `zb`. Counts and the `'scroll'` option behave like the builtin commands, and the animation ends on the same view and cursor. Any mapping Pint replaced is restored when scrolling is disabled. Buffer-local mappings stay in place and keep priority. Mouse-wheel scrolling is unchanged.
+It maps normal-mode `<C-d>`, `<C-u>`, `<C-f>`, `<C-b>`, `zz`, `zt`, and `zb` when those keys do not already have a global mapping. Set `override = true` to replace an existing global mapping; Pint puts that mapping back when scrolling is disabled. Buffer-local mappings stay in place and keep priority. Mouse-wheel scrolling is unchanged. Counts and the `'scroll'` option behave like the builtin commands, and an animation that runs to the end lands on the same view and cursor.
+
+A key pressed during the animation cancels it. That key acts on the in-between line, and Pint does not jump to the planned target. Jumps longer than 100 buffer lines interpolate the topline, then finish on the builtin view.
 
 Animation is skipped while a macro is recording or playing, when another key is already queued, when the scroll key was produced by a different mapping, when the window changes mid-motion, and in buffers longer than `max_lines`.
 

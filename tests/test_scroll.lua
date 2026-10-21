@@ -17,6 +17,9 @@ local T = MiniTest.new_set({
       vim.wo.foldmethod = "manual"
       vim.wo.foldenable = true
       pcall(vim.cmd, "silent! normal! zE")
+      for _, lhs in ipairs({ "<C-d>", "<C-u>", "<C-f>", "<C-b>", "zz", "zt", "zb" }) do
+        pcall(vim.keymap.del, "n", lhs)
+      end
       for _ = 1, 32 do
         if vim.fn.getcharstr(1) == "" then
           break
@@ -285,13 +288,56 @@ end
 
 T["restore puts a replaced mapping back"] = function()
   vim.keymap.set("n", "<C-d>", "j", { desc = "original mapping" })
-  scroll.setup({ enabled = true })
+  scroll.setup({ enabled = true, override = true })
   local during = vim.fn.maparg("<C-d>", "n", false, true)
   MiniTest.expect.equality(during.desc:find("pint", 1, true) ~= nil, true)
 
   scroll.restore()
   local restored = vim.fn.maparg("<C-d>", "n", false, true)
   MiniTest.expect.equality(restored.desc, "original mapping")
+end
+
+T["an existing global mapping is kept unless override is set"] = function()
+  vim.keymap.set("n", "<C-d>", "<C-d>zz", { desc = "user half page" })
+  scroll.setup({ enabled = true })
+  local kept = vim.fn.maparg("<C-d>", "n", false, true)
+  MiniTest.expect.equality(kept.desc, "user half page")
+  MiniTest.expect.equality(vim.fn.maparg("<C-u>", "n") ~= "", true)
+
+  scroll.setup({ enabled = true, override = true })
+  local replaced = vim.fn.maparg("<C-d>", "n", false, true)
+  MiniTest.expect.equality(replaced.desc:find("pint", 1, true) ~= nil, true)
+  scroll.restore()
+  local restored = vim.fn.maparg("<C-d>", "n", false, true)
+  MiniTest.expect.equality(restored.desc, "user half page")
+end
+
+T["a key pressed during the animation is not overwritten"] = function()
+  scroll.setup({ enabled = true, duration = 2000 })
+  fill(140)
+  place(1, 0)
+  scroll.scroll("<C-d>")
+  MiniTest.expect.equality(scroll._test.animating(), true)
+  scroll._test.advance()
+  vim.cmd("normal! gg")
+  local guard = 0
+  while guard < 40 do
+    guard = guard + 1
+    scroll._test.advance()
+  end
+  MiniTest.expect.equality(scroll._test.animating(), false)
+  MiniTest.expect.equality(vim.api.nvim_win_get_cursor(0)[1], 1)
+  MiniTest.expect.equality(vim.fn.winsaveview().lnum, 1)
+end
+
+T["ZZ is not a scroll motion"] = function()
+  scroll.setup({ enabled = true, duration = 400 })
+  fill(40)
+  place(5, 0)
+  local before = vim.fn.winsaveview().lnum
+  scroll.scroll("ZZ")
+  MiniTest.expect.equality(scroll._test.animating(), false)
+  MiniTest.expect.equality(vim.fn.winsaveview().lnum, before)
 end
 
 T["restore leaves a mapping installed after Pint"] = function()

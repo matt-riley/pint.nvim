@@ -380,7 +380,11 @@ pint.scroll
 Smooth scrolling for `<C-d>`, `<C-u>`, `<C-f>`, `<C-b>`, `zz`, `zt`, and `zb`.
 Each motion finishes on the same view and cursor as the builtin command.
 Smooth scrolling is on by default (`enabled` defaults to true). Mouse-wheel scrolling is
-left untouched. Animation is skipped while recording or replaying a macro,
+left untouched. An existing global mapping is kept unless `override` is true.
+A key pressed during an animation cancels it and acts on the in-between line;
+the motion does not jump to the planned target. Jumps longer than 100 buffer
+lines interpolate the topline, then finish on the builtin view.
+Animation is skipped while recording or replaying a macro,
 when another key is already queued, when the key was produced by a different
 mapping, when the window changes, and in buffers longer than `max_lines`.
 
@@ -393,6 +397,7 @@ Fields ~
 {duration} `(optional)` `(integer)` Animation length in milliseconds. Default: 200
 {easing} `(optional)` `(string|fun(t: number): number)` `linear`, `ease-out-quad`, or a function of progress. Default: `ease-out-quad`
 {max_lines} `(optional)` `(integer)` Skip animation in longer buffers. Default: 10000
+{override} `(optional)` `(boolean)` Replace an existing global mapping. Default: false
 
 ------------------------------------------------------------------------------
                                                                 *M.is_enabled()*
@@ -426,7 +431,8 @@ Disable smooth scrolling and release timers, mappings, and window options.
                                `M.setup`({opts})
 Configure smooth scrolling.
 
-Mappings are installed only when `enabled` is true. Call `enable()`,
+Mappings are installed only when `enabled` is true. An existing global
+mapping is left in place unless `override` is true. Call `enable()`,
 `disable()`, or `toggle()` to change that later without repeating setup.
 Parameters ~
 {opts} `(optional)` `(pint.scroll.Config)`

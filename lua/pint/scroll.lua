@@ -7,7 +7,11 @@ local M = {}
 --- Smooth scrolling for `<C-d>`, `<C-u>`, `<C-f>`, `<C-b>`, `zz`, `zt`, and `zb`.
 --- Each motion finishes on the same view and cursor as the builtin command.
 --- Smooth scrolling is on by default (`enabled` defaults to true). Mouse-wheel scrolling is
---- left untouched. Animation is skipped while recording or replaying a macro,
+--- left untouched. An existing global mapping is kept unless `override` is true.
+--- A key pressed during an animation cancels it and acts on the in-between line;
+--- the motion does not jump to the planned target. Jumps longer than 100 buffer
+--- lines interpolate the topline, then finish on the builtin view.
+--- Animation is skipped while recording or replaying a macro,
 --- when another key is already queued, when the key was produced by a different
 --- mapping, when the window changes, and in buffers longer than `max_lines`.
 ---
@@ -19,19 +23,21 @@ local M = {}
 ---@field duration? integer Animation length in milliseconds. Default: 200
 ---@field easing? string|fun(t: number): number `linear`, `ease-out-quad`, or a function of progress. Default: `ease-out-quad`
 ---@field max_lines? integer Skip animation in longer buffers. Default: 10000
+---@field override? boolean Replace an existing global mapping. Default: false
 
 local defaults = {
   enabled = true,
   duration = 200,
   easing = "ease-out-quad",
   max_lines = 10000,
+  override = false,
 }
 
 M.config = vim.deepcopy(defaults)
 
 local FRAME_MS = 16
 local MAX_WALK = 800
-local LONG_JUMP = 300
+local LONG_JUMP = 100
 
 local COMMANDS = {
   ["<C-d>"] = true,
@@ -54,21 +60,14 @@ local easings = {
 
 local enabled = false
 local switching = 0
+local placing = false
 local skipped_fast = 0
 local last_error ---@type string?
 local last_typed = ""
 local key_namespace = vim.api.nvim_create_namespace("pint.scroll")
 
 ---@private
----@class pint.scroll.View
----@field lnum integer
----@field col integer
----@field coladd integer
----@field curswant integer
----@field topline integer
----@field topfill integer
----@field leftcol integer
----@field skipcol integer
+---@alias pint.scroll.View vim.fn.winsaveview.ret
 
 ---@private
 ---@class pint.scroll.Position
@@ -96,6 +95,7 @@ local key_namespace = vim.api.nvim_create_namespace("pint.scroll")
 ---@field duration integer
 ---@field interval integer
 ---@field elapsed number
+---@field placed? pint.scroll.View
 
 ---@private
 ---@type pint.scroll.Animation?
@@ -232,9 +232,6 @@ local function canonical(lhs)
     ["<C-U>"] = "<C-u>",
     ["<C-F>"] = "<C-f>",
     ["<C-B>"] = "<C-b>",
-    ZZ = "zz",
-    ZT = "zt",
-    ZB = "zb",
   }
   local name = aliases[translated] or lhs
   if COMMANDS[name] then
@@ -542,6 +539,47 @@ local function finish(anim)
 end
 
 ---@private
+---@param left pint.scroll.View
+---@param right pint.scroll.View
+---@return boolean
+local function views_agree(left, right)
+  return left.lnum == right.lnum
+    and left.col == right.col
+    and (left.coladd or 0) == (right.coladd or 0)
+    and left.topline == right.topline
+    and (left.topfill or 0) == (right.topfill or 0)
+    and (left.leftcol or 0) == (right.leftcol or 0)
+    and (left.skipcol or 0) == (right.skipcol or 0)
+end
+
+---@private
+---@param anim pint.scroll.Animation
+---@return boolean
+local function user_moved(anim)
+  if not anim.placed or not vim.api.nvim_win_is_valid(anim.win) then
+    return false
+  end
+  if vim.api.nvim_get_current_win() ~= anim.win then
+    return false
+  end
+  local now = win_call(anim.win, function()
+    return copy_view(vim.fn.winsaveview())
+  end)
+  return not views_agree(now, anim.placed)
+end
+
+---@private
+---@param anim pint.scroll.Animation
+local function remember_placed(anim)
+  if not vim.api.nvim_win_is_valid(anim.win) then
+    return
+  end
+  anim.placed = win_call(anim.win, function()
+    return copy_view(vim.fn.winsaveview())
+  end)
+end
+
+---@private
 ---@param anim pint.scroll.Animation
 ---@param generation integer
 ---@param t number
@@ -554,7 +592,7 @@ local function on_tick(anim, generation, t)
     and vim.api.nvim_win_get_buf(anim.win) == anim.buf
     and vim.api.nvim_get_current_win() == anim.win
     and vim.api.nvim_buf_get_changedtick(anim.buf) == anim.changedtick
-  if not win_ok or vim.fn.mode() ~= "n" then
+  if not win_ok or vim.fn.mode() ~= "n" or user_moved(anim) then
     stop_current(false)
     return
   end
@@ -575,14 +613,19 @@ local function on_tick(anim, generation, t)
     lnum = last
   end
   local ok, err = xpcall(function()
+    placing = true
     apply_partial(anim.win, pos, lnum, anim.from.col, anim.from.curswant)
+    pcall(vim.cmd.redraw)
+    remember_placed(anim)
+    placing = false
   end, debug.traceback)
+  if placing then
+    placing = false
+  end
   if not ok then
     last_error = tostring(err)
     stop_current(true)
-    return
   end
-  pcall(vim.cmd.redraw)
 end
 
 ---@private
@@ -786,15 +829,18 @@ local function map_scroll(lhs)
 end
 
 local function install_maps()
+  local replace = M.config.override == true
   for lhs in pairs(COMMANDS) do
     local desc = "pint: smooth scroll " .. lhs
     local previous = global_mapping(lhs)
-    vim.keymap.set("n", lhs, map_scroll(lhs), { desc = desc, silent = true })
-    installed_maps[#installed_maps + 1] = {
-      lhs = lhs,
-      desc = desc,
-      previous = previous,
-    }
+    if not previous or previous.desc == desc or replace then
+      vim.keymap.set("n", lhs, map_scroll(lhs), { desc = desc, silent = true })
+      installed_maps[#installed_maps + 1] = {
+        lhs = lhs,
+        desc = desc,
+        previous = previous,
+      }
+    end
   end
 end
 
@@ -824,6 +870,17 @@ local function ensure_autocmds()
       elseif event.event == "WinLeave" and vim.api.nvim_get_current_win() == current.win then
         stop_current(false)
       elseif event.event == "BufWipeout" and event.buf == current.buf then
+        stop_current(false)
+      end
+    end,
+  })
+  vim.api.nvim_create_autocmd("CursorMoved", {
+    group = group,
+    callback = function()
+      if switching > 0 or placing or not current then
+        return
+      end
+      if user_moved(current) then
         stop_current(false)
       end
     end,
@@ -874,7 +931,8 @@ end
 
 --- Configure smooth scrolling.
 ---
---- Mappings are installed only when `enabled` is true. Call `enable()`,
+--- Mappings are installed only when `enabled` is true. An existing global
+--- mapping is left in place unless `override` is true. Call `enable()`,
 --- `disable()`, or `toggle()` to change that later without repeating setup.
 ---@param opts? pint.scroll.Config
 function M.setup(opts)
@@ -911,7 +969,8 @@ function M.scroll(lhs, opts)
   end
 
   local ok, err = xpcall(function()
-    if opts.immediate or block_reason(buf) then
+    local reason = not opts.immediate and block_reason(buf) or nil
+    if opts.immediate or reason then
       play_now(win, name, count)
     else
       play_animated(win, buf, name, count)
