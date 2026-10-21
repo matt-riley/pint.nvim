@@ -11,7 +11,7 @@ local function add_mini()
   table.insert(paths, data_dir .. "/site/pack/lazy/start/mini.nvim")
 
   for _, path in ipairs(paths) do
-    if vim.loop.fs_stat(path) then
+    if vim.uv.fs_stat(path) then
       vim.opt.runtimepath:append(path)
       return
     end
