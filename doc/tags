@@ -1,7 +1,10 @@
 M.disable()	pint.txt	/*M.disable()*
+M.disable()	pint.txt	/*M.disable()*
 M.dismiss()	pint.txt	/*M.dismiss()*
 M.enable()	pint.txt	/*M.enable()*
+M.enable()	pint.txt	/*M.enable()*
 M.get()	pint.txt	/*M.get()*
+M.is_enabled()	pint.txt	/*M.is_enabled()*
 M.is_enabled()	pint.txt	/*M.is_enabled()*
 M.jump()	pint.txt	/*M.jump()*
 M.jump()	pint.txt	/*M.jump()*
@@ -13,6 +16,9 @@ M.restore()	pint.txt	/*M.restore()*
 M.restore()	pint.txt	/*M.restore()*
 M.restore()	pint.txt	/*M.restore()*
 M.restore()	pint.txt	/*M.restore()*
+M.restore()	pint.txt	/*M.restore()*
+M.scroll()	pint.txt	/*M.scroll()*
+M.setup()	pint.txt	/*M.setup()*
 M.setup()	pint.txt	/*M.setup()*
 M.setup()	pint.txt	/*M.setup()*
 M.setup()	pint.txt	/*M.setup()*
@@ -21,9 +27,11 @@ M.setup()	pint.txt	/*M.setup()*
 M.setup()	pint.txt	/*M.setup()*
 M.show_history()	pint.txt	/*M.show_history()*
 M.textobject()	pint.txt	/*M.textobject()*
+M.toggle()	pint.txt	/*M.toggle()*
 pint	pint.txt	/*pint*
 pint-dashboard	pint.txt	/*pint-dashboard*
 pint-indent	pint.txt	/*pint-indent*
 pint-notifier	pint.txt	/*pint-notifier*
+pint-scroll	pint.txt	/*pint-scroll*
 pint-statuscolumn	pint.txt	/*pint-statuscolumn*
 pint-words	pint.txt	/*pint-words*

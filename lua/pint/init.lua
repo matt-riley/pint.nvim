@@ -4,7 +4,7 @@ local M = {}
 --- pint.nvim
 ---
 --- A small measure of UI: dashboard, notifier, statuscolumn, indent guides,
---- and LSP reference words. Scoped to exactly what one config needs.
+--- smooth scrolling, and LSP reference words. Scoped to exactly what one config needs.
 ---
 --- Modules ~
 --- - |pint-dashboard|: `require("pint.dashboard").open()`
@@ -12,6 +12,7 @@ local M = {}
 --- - |pint-statuscolumn|: sets `'statuscolumn'` globally
 --- - |pint-indent|: indent guides with `ii`/`ai` and `[i`/`]i`
 --- - |pint-words|: LSP reference highlights with `require("pint.words").jump()`
+--- - |pint-scroll|: smooth `<C-d>`/`<C-u>`/`<C-f>`/`<C-b>` and `zz`/`zt`/`zb`
 ---
 ---@tag pint
 
@@ -23,6 +24,7 @@ local M = {}
 ---@field statuscolumn? pint.statuscolumn.Config|false
 ---@field indent? pint.indent.Config|false
 ---@field words? pint.words.Config|false
+---@field scroll? pint.scroll.Config|false
 
 ---@private
 local defaults = {
@@ -32,13 +34,14 @@ local defaults = {
   statuscolumn = {},
   indent = {},
   words = {},
+  scroll = {},
 }
 
 ---@private
 ---@type pint.Config
 M.config = vim.deepcopy(defaults)
 
-local modules = { "notifier", "statuscolumn", "indent", "words", "dashboard" }
+local modules = { "notifier", "statuscolumn", "indent", "words", "dashboard", "scroll" }
 
 --- Disable every Pint module and release the state Pint owns.
 function M.restore()

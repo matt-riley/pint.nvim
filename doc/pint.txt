@@ -4,7 +4,7 @@ pint.nvim
 Version: 0.1.3
 
 A small measure of UI: dashboard, notifier, statuscolumn, indent guides,
-and LSP reference words. Scoped to exactly what one config needs.
+smooth scrolling, and LSP reference words. Scoped to exactly what one config needs.
 
 Modules ~
 - |pint-dashboard|: `require("pint.dashboard").open()`
@@ -12,6 +12,7 @@ Modules ~
 - |pint-statuscolumn|: sets `'statuscolumn'` globally
 - |pint-indent|: indent guides with `ii`/`ai` and `[i`/`]i`
 - |pint-words|: LSP reference highlights with `require("pint.words").jump()`
+- |pint-scroll|: smooth `<C-d>`/`<C-u>`/`<C-f>`/`<C-b>` and `zz`/`zt`/`zb`
 
 ------------------------------------------------------------------------------
 Plugin configuration.
@@ -24,6 +25,7 @@ Fields ~
 {statuscolumn} `(optional)` `(pint.statuscolumn.Config|false)`
 {indent} `(optional)` `(pint.indent.Config|false)`
 {words} `(optional)` `(pint.words.Config|false)`
+{scroll} `(optional)` `(pint.scroll.Config|false)`
 
 ------------------------------------------------------------------------------
                                                                    *M.restore()*
@@ -368,6 +370,78 @@ Disable automatic highlighting and release all tracked state.
 Set up autocmds for automatic reference highlighting.
 Parameters ~
 {opts} `(optional)` `(pint.words.Config)`
+
+
+==============================================================================
+------------------------------------------------------------------------------
+                                                                   *pint-scroll*
+pint.scroll
+
+Smooth scrolling for `<C-d>`, `<C-u>`, `<C-f>`, `<C-b>`, `zz`, `zt`, and `zb`.
+Each motion finishes on the same view and cursor as the builtin command.
+The module is opt-in (`enabled` defaults to false). Mouse-wheel scrolling is
+left untouched. Animation is skipped while recording or replaying a macro,
+when another key is already queued, when the key was produced by a different
+mapping, when the window changes, and in buffers longer than `max_lines`.
+
+------------------------------------------------------------------------------
+Smooth scroll configuration.
+Class ~
+{pint.scroll.Config}
+Fields ~
+{enabled} `(optional)` `(boolean)` Install scroll mappings. Default: false
+{duration} `(optional)` `(integer)` Animation length in milliseconds. Default: 200
+{easing} `(optional)` `(string|fun(t: number): number)` `linear`, `ease-out-quad`, or a function of progress. Default: `ease-out-quad`
+{max_lines} `(optional)` `(integer)` Skip animation in longer buffers. Default: 10000
+
+------------------------------------------------------------------------------
+                                                                *M.is_enabled()*
+                                `M.is_enabled`()
+Is smooth scrolling currently installed?
+Return ~
+`(boolean)`
+
+------------------------------------------------------------------------------
+                                                                    *M.enable()*
+                                  `M.enable`()
+Enable smooth scrolling and install its mappings.
+
+------------------------------------------------------------------------------
+                                                                   *M.disable()*
+                                 `M.disable`()
+Disable smooth scrolling, finish any in-flight motion, and restore mappings.
+
+------------------------------------------------------------------------------
+                                                                    *M.toggle()*
+                                  `M.toggle`()
+Toggle smooth scrolling.
+
+------------------------------------------------------------------------------
+                                                                   *M.restore()*
+                                 `M.restore`()
+Disable smooth scrolling and release timers, mappings, and window options.
+
+------------------------------------------------------------------------------
+                                                                     *M.setup()*
+                               `M.setup`({opts})
+Configure smooth scrolling.
+
+Mappings are installed only when `enabled` is true. Call `enable()`,
+`disable()`, or `toggle()` to change that later without repeating setup.
+Parameters ~
+{opts} `(optional)` `(pint.scroll.Config)`
+
+------------------------------------------------------------------------------
+                                                                    *M.scroll()*
+                           `M.scroll`({lhs}, {opts})
+Run a scroll command, animating when it is safe.
+
+`lhs` is `<C-d>`, `<C-u>`, `<C-f>`, `<C-b>`, `zz`, `zt`, or `zb`.
+Counts match the builtin commands. `zz`, `zt`, and `zb` take a line number,
+while `<C-d>` and `<C-u>` use a count as the `'scroll'` amount.
+Parameters ~
+{lhs} `(string)`
+{opts} `(optional)` `({immediate?: boolean, count?: integer})`
 
 
  vim:tw=78:ts=8:noet:ft=help:norl:

@@ -13,6 +13,7 @@ setup_set["setup() enables all modules by default"] = function()
   MiniTest.expect.equality(type(pint.config.statuscolumn), "table")
   MiniTest.expect.equality(type(pint.config.indent), "table")
   MiniTest.expect.equality(type(pint.config.words), "table")
+  MiniTest.expect.equality(type(pint.config.scroll), "table")
 end
 
 setup_set["setup() allows disabling a module"] = function()
@@ -713,6 +714,11 @@ dashboard_set["q key closes the dashboard"] = function()
   -- Also test feeding 'q' doesn't crash (it might close or error, both OK).
   local ok = pcall(vim.api.nvim_feedkeys, "q", "n", false)
   MiniTest.expect.equality(ok, true, "feeding q should not error")
+  -- feedkeys() without "x" only queues the key. Drop it so later tests do not
+  -- treat a stale "q" as typeahead.
+  if vim.fn.getcharstr(1) ~= "" then
+    vim.fn.getcharstr(0)
+  end
 end
 
 dashboard_set["open() with header string splits on newlines"] = function()
