@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.4](https://github.com/matt-riley/pint.nvim/compare/v0.1.3...v0.1.4) (2026-10-21)
+
+
+### Features
+
+* **scroll:** animate half-page, page, and cursor-line motions ([#18](https://github.com/matt-riley/pint.nvim/issues/18)) ([afdf324](https://github.com/matt-riley/pint.nvim/commit/afdf324671c8eedcd6c0500e5f46e9a36bad64e3))
+
+
+### Bug Fixes
+
+* correct dashboard action lookup and indent mapping restoration ([#15](https://github.com/matt-riley/pint.nvim/issues/15)) ([57c7764](https://github.com/matt-riley/pint.nvim/commit/57c7764b7346c6303e2b0be39708329e8d6aaea9))
+
 ## [0.1.3](https://github.com/matt-riley/pint.nvim/compare/v0.1.2...v0.1.3) (2026-07-11)
 
 
