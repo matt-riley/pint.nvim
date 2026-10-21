@@ -1,6 +1,6 @@
 # pint.nvim
 
-> A small measure of polished UI for Neovim: dashboard, notifications, statuscolumn, indent guides, and LSP reference words.
+> A small measure of polished UI for Neovim: dashboard, notifications, statuscolumn, indent guides, smooth scrolling, and LSP reference words.
 
 [![Tests](https://github.com/matt-riley/pint.nvim/actions/workflows/tests.yml/badge.svg)](https://github.com/matt-riley/pint.nvim/actions/workflows/tests.yml)
 [![Lint](https://github.com/matt-riley/pint.nvim/actions/workflows/lint.yml/badge.svg)](https://github.com/matt-riley/pint.nvim/actions/workflows/lint.yml)
@@ -16,8 +16,9 @@ Pint is a deliberately scoped, dependency-free replacement for the parts of larg
 - **statuscolumn** — compact diagnostic/sign, number, and fold/Git layout with correct absolute, relative, and hybrid numbers
 - **indent** — static guides with an active-scope highlight, `ii`/`ai` text objects, and `[i`/`]i` navigation
 - **words** — encoding-safe LSP `documentHighlight` with stale-response protection and reference navigation
+- **scroll** — smooth motion for half-page, page, and `zz`/`zt`/`zb` that finishes on the builtin view and cursor (on by default)
 
-Pint targets the five features above. It is not trying to become a picker, terminal, Git client, file explorer, or general component framework. Vibes are not an architecture.
+Pint targets the six features above. It is not trying to become a picker, terminal, Git client, file explorer, or general component framework. Vibes are not an architecture.
 
 ## Requirements
 
@@ -119,6 +120,13 @@ require("pint").setup({
     notify = false,
   },
 
+  scroll = {
+    duration = 200,
+    easing = "ease-out-quad", -- "linear", "ease-out-quad", or function(t) -> number
+    max_lines = 10000,
+    override = false, -- set true to replace existing global scroll mappings
+  },
+
   -- Any module can be disabled with `module = false`.
 })
 ```
@@ -137,6 +145,16 @@ vim.keymap.set("n", "[r", function()
 end, { desc = "Previous reference" })
 ```
 
+### Scroll
+
+Smooth scrolling is on when you call `require("pint").setup()` with no `scroll` options. Turn it off with `scroll = { enabled = false }`, `scroll = false` (skip the module entirely), or `:Pint scroll-disable`.
+
+It maps normal-mode `<C-d>`, `<C-u>`, `<C-f>`, `<C-b>`, `zz`, `zt`, and `zb` when those keys do not already have a global mapping. Set `override = true` to replace an existing global mapping; Pint puts that mapping back when scrolling is disabled. Buffer-local mappings stay in place and keep priority. Mouse-wheel scrolling is unchanged. Counts and the `'scroll'` option behave like the builtin commands, and an animation that runs to the end lands on the same view and cursor.
+
+A key pressed during the animation cancels it. That key acts on the in-between line, and Pint does not jump to the planned target. Jumps longer than 100 buffer lines interpolate the topline, then finish on the builtin view.
+
+Animation is skipped while a macro is recording or playing, when another key is already queued, when the scroll key was produced by a different mapping, when the window changes mid-motion, and in buffers longer than `max_lines`.
+
 ## Commands
 
 ```vim
@@ -146,6 +164,9 @@ end, { desc = "Previous reference" })
 :Pint dismiss-all
 :Pint words-enable
 :Pint words-disable
+:Pint scroll-enable
+:Pint scroll-disable
+:Pint scroll-toggle
 :Pint restore
 ```
 

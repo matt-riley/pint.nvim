@@ -4,7 +4,7 @@ local T = MiniTest.new_set({ hooks = { pre_case = require("tests.helpers").reset
 local pint = require("pint")
 
 T["restore is idempotent"] = function()
-  pint.setup({ dashboard = { autostart = false } })
+  pint.setup({ dashboard = { autostart = false }, scroll = false })
   pint.restore()
   local ok = pcall(pint.restore)
   MiniTest.expect.equality(ok, true)
@@ -20,6 +20,7 @@ T["disabling modules restores owned global state"] = function()
     statuscolumn = {},
     indent = false,
     words = false,
+    scroll = false,
   })
 
   pint.setup({
@@ -28,6 +29,7 @@ T["disabling modules restores owned global state"] = function()
     statuscolumn = false,
     indent = false,
     words = false,
+    scroll = false,
   })
 
   MiniTest.expect.equality(vim.notify, original_notify)
@@ -43,6 +45,7 @@ T["repeated setup does not wrap vim.notify repeatedly"] = function()
     statuscolumn = false,
     indent = false,
     words = false,
+    scroll = false,
   })
   local first_wrapper = vim.notify
 
@@ -52,6 +55,7 @@ T["repeated setup does not wrap vim.notify repeatedly"] = function()
     statuscolumn = false,
     indent = false,
     words = false,
+    scroll = false,
   })
   local second_wrapper = vim.notify
 

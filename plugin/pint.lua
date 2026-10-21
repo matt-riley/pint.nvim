@@ -9,6 +9,9 @@ local subcommands = {
   "restore",
   "words-enable",
   "words-disable",
+  "scroll-enable",
+  "scroll-disable",
+  "scroll-toggle",
 }
 
 vim.api.nvim_create_user_command("Pint", function(cmd)
@@ -28,6 +31,12 @@ vim.api.nvim_create_user_command("Pint", function(cmd)
     require("pint.words").enable()
   elseif sub == "words-disable" then
     require("pint.words").disable()
+  elseif sub == "scroll-enable" then
+    require("pint.scroll").enable()
+  elseif sub == "scroll-disable" then
+    require("pint.scroll").disable()
+  elseif sub == "scroll-toggle" then
+    require("pint.scroll").toggle()
   else
     vim.notify(("Pint: unknown subcommand %q"):format(sub), vim.log.levels.ERROR)
   end
