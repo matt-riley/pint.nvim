@@ -240,13 +240,27 @@ T["disabled scrolling leaves the builtin commands in place"] = function()
   MiniTest.expect.equality(vim.fn.winsaveview().topline > before, true)
 end
 
-T["setup leaves scrolling off until it is enabled"] = function()
+T["setup enables smooth scrolling by default"] = function()
   require("pint").setup({
     dashboard = false,
     notifier = false,
     statuscolumn = false,
     indent = false,
     words = false,
+  })
+  MiniTest.expect.equality(scroll.is_enabled(), true)
+  MiniTest.expect.equality(vim.fn.maparg("<C-d>", "n") ~= "", true)
+  MiniTest.expect.equality(scroll.config.enabled, true)
+end
+
+T["setup can turn smooth scrolling off with enabled false"] = function()
+  require("pint").setup({
+    dashboard = false,
+    notifier = false,
+    statuscolumn = false,
+    indent = false,
+    words = false,
+    scroll = { enabled = false },
   })
   MiniTest.expect.equality(scroll.is_enabled(), false)
   MiniTest.expect.equality(vim.fn.maparg("<C-d>", "n"), "")

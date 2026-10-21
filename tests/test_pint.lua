@@ -14,6 +14,7 @@ setup_set["setup() enables all modules by default"] = function()
   MiniTest.expect.equality(type(pint.config.indent), "table")
   MiniTest.expect.equality(type(pint.config.words), "table")
   MiniTest.expect.equality(type(pint.config.scroll), "table")
+  MiniTest.expect.equality(require("pint.scroll").is_enabled(), true)
 end
 
 setup_set["setup() allows disabling a module"] = function()

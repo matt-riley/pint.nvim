@@ -6,7 +6,7 @@ local M = {}
 ---
 --- Smooth scrolling for `<C-d>`, `<C-u>`, `<C-f>`, `<C-b>`, `zz`, `zt`, and `zb`.
 --- Each motion finishes on the same view and cursor as the builtin command.
---- The module is opt-in (`enabled` defaults to false). Mouse-wheel scrolling is
+--- Smooth scrolling is on by default (`enabled` defaults to true). Mouse-wheel scrolling is
 --- left untouched. Animation is skipped while recording or replaying a macro,
 --- when another key is already queued, when the key was produced by a different
 --- mapping, when the window changes, and in buffers longer than `max_lines`.
@@ -15,13 +15,13 @@ local M = {}
 
 --- Smooth scroll configuration.
 ---@class pint.scroll.Config
----@field enabled? boolean Install scroll mappings. Default: false
+---@field enabled? boolean Install scroll mappings. Default: true
 ---@field duration? integer Animation length in milliseconds. Default: 200
 ---@field easing? string|fun(t: number): number `linear`, `ease-out-quad`, or a function of progress. Default: `ease-out-quad`
 ---@field max_lines? integer Skip animation in longer buffers. Default: 10000
 
 local defaults = {
-  enabled = false,
+  enabled = true,
   duration = 200,
   easing = "ease-out-quad",
   max_lines = 10000,

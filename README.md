@@ -16,7 +16,7 @@ Pint is a deliberately scoped, dependency-free replacement for the parts of larg
 - **statuscolumn** — compact diagnostic/sign, number, and fold/Git layout with correct absolute, relative, and hybrid numbers
 - **indent** — static guides with an active-scope highlight, `ii`/`ai` text objects, and `[i`/`]i` navigation
 - **words** — encoding-safe LSP `documentHighlight` with stale-response protection and reference navigation
-- **scroll** — opt-in smooth motion for half-page, page, and `zz`/`zt`/`zb` that finishes on the builtin view and cursor
+- **scroll** — smooth motion for half-page, page, and `zz`/`zt`/`zb` that finishes on the builtin view and cursor (on by default)
 
 Pint targets the six features above. It is not trying to become a picker, terminal, Git client, file explorer, or general component framework. Vibes are not an architecture.
 
@@ -121,7 +121,6 @@ require("pint").setup({
   },
 
   scroll = {
-    enabled = false,
     duration = 200,
     easing = "ease-out-quad", -- "linear", "ease-out-quad", or function(t) -> number
     max_lines = 10000,
@@ -147,7 +146,7 @@ end, { desc = "Previous reference" })
 
 ### Scroll
 
-Smooth scrolling stays off until `scroll.enabled` is true or you run `:Pint scroll-toggle`.
+Smooth scrolling is on when you call `require("pint").setup()` with no `scroll` options. Turn it off with `scroll = { enabled = false }`, `scroll = false` (skip the module entirely), or `:Pint scroll-disable`.
 
 It maps normal-mode `<C-d>`, `<C-u>`, `<C-f>`, `<C-b>`, `zz`, `zt`, and `zb`. Counts and the `'scroll'` option behave like the builtin commands, and the animation ends on the same view and cursor. Any mapping Pint replaced is restored when scrolling is disabled. Buffer-local mappings stay in place and keep priority. Mouse-wheel scrolling is unchanged.
 
