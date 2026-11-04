@@ -59,6 +59,7 @@ require("pint").setup({
 
   dashboard = {
     header = { "my ascii art" },
+    width = nil, -- content width in columns; defaults to the widest content line
     keys = {
       { icon = " ", key = "f", desc = "Find File", action = "<leader>sf" },
     },

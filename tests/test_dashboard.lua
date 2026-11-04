@@ -82,6 +82,64 @@ T["footer callback is opt-in and centred"] = function()
   MiniTest.expect.equality(contains("Pint is ready"), true)
 end
 
+local function content_width()
+  local width = 0
+  for _, line in ipairs(lines()) do
+    width = math.max(width, vim.api.nvim_strwidth(vim.trim(line)))
+  end
+  return width
+end
+
+T["content is sized to its widest line, not the window"] = function()
+  dashboard.setup({
+    autostart = false,
+    header = {},
+    recent = false,
+    keys = { { key = "f", desc = "Find File", action = ":echo 1" } },
+  })
+
+  dashboard.open()
+  local window_width = vim.api.nvim_win_get_width(0)
+  MiniTest.expect.equality(window_width > 48, true)
+  MiniTest.expect.equality(content_width(), 48)
+end
+
+T["width option fixes the content width"] = function()
+  dashboard.setup({
+    autostart = false,
+    header = {},
+    recent = false,
+    width = 60,
+    keys = { { key = "f", desc = "Find File", action = ":echo 1" } },
+  })
+
+  dashboard.open()
+  MiniTest.expect.equality(content_width(), 60)
+end
+
+T["key hints share one right aligned column"] = function()
+  dashboard.setup({
+    autostart = false,
+    header = {},
+    recent = false,
+    keys = {
+      { key = "f", desc = "Find File", action = ":echo 1" },
+      { key = "g", desc = "Live Grep", action = ":echo 2" },
+    },
+  })
+
+  dashboard.open()
+  local columns = {}
+  for _, line in ipairs(lines()) do
+    local col = line:find("%[%a%]")
+    if col then
+      table.insert(columns, col)
+    end
+  end
+  MiniTest.expect.equality(#columns, 2)
+  MiniTest.expect.equality(columns[1], columns[2])
+end
+
 T["refresh removes obsolete action mappings"] = function()
   dashboard.setup({
     autostart = false,
