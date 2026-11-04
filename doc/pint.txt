@@ -108,7 +108,7 @@ Fields ~
 {recent} `(optional)` `({enabled?:boolean, cwd?:boolean, limit?:integer, filter?:fun(file:string):boolean}|false)`
 {sections} `(optional)` `(pint.dashboard.Section[])`
 {autostart} `(optional)` `(boolean)`
-{width} `(optional)` `(integer)`
+{width} `(optional)` `(integer)` Content width in columns. Defaults to the widest header, key, or section title, with a 48 column floor.
 {autokeys} `(optional)` `(string)`
 {footer} `(optional)` `(fun(): string|{)` [1]: string, hl?: string }[]|nil
 

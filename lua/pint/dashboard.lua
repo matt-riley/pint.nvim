@@ -40,7 +40,7 @@ local ui = require("pint.ui")
 ---@field recent? {enabled?:boolean, cwd?:boolean, limit?:integer, filter?:fun(file:string):boolean}|false
 ---@field sections? pint.dashboard.Section[]
 ---@field autostart? boolean
----@field width? integer
+---@field width? integer Content width in columns. Defaults to the widest header, key, or section title, with a 48 column floor.
 ---@field autokeys? string
 ---@field footer? fun(): string|pint.dashboard.Seg[]|nil
 
@@ -412,12 +412,41 @@ local function add_section(rows, section, max_width, used, autokeys, auto_state)
   end
 end
 
+-- Narrowest content width, so short dashboards still fit their lists.
+local min_width = 48
+
+---@private
+---@param header string[]
+---@param keys pint.dashboard.Key[]
+---@param sections pint.dashboard.Section[]
+---@return integer
+local function natural_width(header, keys, sections)
+  local width = min_width
+  for _, line in ipairs(header) do
+    width = math.max(width, vim.api.nvim_strwidth(line))
+  end
+  for _, key in ipairs(keys) do
+    if not key.hidden then
+      local icon = key.icon or ui.icon("dashboard", "◆")
+      local hint = "[" .. key.key .. "]"
+      width = math.max(
+        width,
+        vim.api.nvim_strwidth(icon) + 2 + vim.api.nvim_strwidth(key.desc or "") + 2 + vim.api.nvim_strwidth(hint)
+      )
+    end
+  end
+  for _, section in ipairs(sections) do
+    local icon = section.icon or ui.icon("dashboard", "◆")
+    width = math.max(width, vim.api.nvim_strwidth(icon) + 2 + vim.api.nvim_strwidth(section.title or ""))
+  end
+  return width
+end
+
 ---@private
 ---@param win integer
 ---@return pint.dashboard.Row[] rows, pint.dashboard.Seg[]? footer
 local function build_rows(win)
   local win_width = math.max(vim.api.nvim_win_get_width(win), 1)
-  local max_width = math.max(math.min(M.config.width or (win_width - 2), win_width), 1)
   local rows = {}
   local used = {}
   local autokeys = (M.config.autokeys or defaults.autokeys):gsub("[hjklq]", "")
@@ -429,6 +458,18 @@ local function build_rows(win)
   elseif type(header) ~= "table" then
     header = {}
   end
+
+  local keys = {}
+  for _, key in ipairs(M.config.keys or {}) do
+    if enabled(key.enabled) then
+      keys[#keys + 1] = key
+      used[key.key] = true
+    end
+  end
+
+  local width = M.config.width or natural_width(header, keys, M.config.sections or {})
+  local max_width = math.max(math.min(width, win_width - 2), 1)
+
   for _, line in ipairs(header) do
     rows[#rows + 1] = {
       segments = fit_segments({ { line, hl = "PintDashboardHeader" } }, max_width),
@@ -440,20 +481,17 @@ local function build_rows(win)
     blank(rows)
   end
 
-  for _, key in ipairs(M.config.keys or {}) do
-    if enabled(key.enabled) then
-      used[key.key] = true
-      local segments = {
-        { key.icon or ui.icon("dashboard", "◆"), hl = "PintDashboardIcon" },
-        { "  " .. key.desc, hl = "PintDashboardDesc" },
-      }
-      rows[#rows + 1] = {
-        segments = key.hidden and {} or with_key(segments, key.key, max_width),
-        action = key.action,
-        key = key.key,
-        hidden = key.hidden,
-      }
-    end
+  for _, key in ipairs(keys) do
+    local segments = {
+      { key.icon or ui.icon("dashboard", "◆"), hl = "PintDashboardIcon" },
+      { "  " .. key.desc, hl = "PintDashboardDesc" },
+    }
+    rows[#rows + 1] = {
+      segments = key.hidden and {} or with_key(segments, key.key, max_width),
+      action = key.action,
+      key = key.key,
+      hidden = key.hidden,
+    }
   end
 
   local sections = {}
