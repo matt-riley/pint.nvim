@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.5](https://github.com/matt-riley/pint.nvim/compare/v0.1.4...v0.1.5) (2026-11-04)
+
+
+### Features
+
+* **dashboard:** size the dashboard to its content ([#23](https://github.com/matt-riley/pint.nvim/issues/23)) ([8c486bc](https://github.com/matt-riley/pint.nvim/commit/8c486bc75fa27a593f48c8150251ab4ed9624f16))
+
 ## [0.1.4](https://github.com/matt-riley/pint.nvim/compare/v0.1.3...v0.1.4) (2026-10-21)
 
 
