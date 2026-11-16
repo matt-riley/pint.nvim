@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.6](https://github.com/matt-riley/pint.nvim/compare/v0.1.5...v0.1.6) (2026-11-16)
+
+
+### Bug Fixes
+
+* **docs:** qualify help tags with the module path ([#28](https://github.com/matt-riley/pint.nvim/issues/28)) ([c8ca45e](https://github.com/matt-riley/pint.nvim/commit/c8ca45e5d826da8a7ffae5f1488223a68a567f81))
+
 ## [0.1.5](https://github.com/matt-riley/pint.nvim/compare/v0.1.4...v0.1.5) (2026-11-04)
 
 
