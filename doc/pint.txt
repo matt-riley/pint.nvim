@@ -28,13 +28,13 @@ Fields ~
 {scroll} `(optional)` `(pint.scroll.Config|false)`
 
 ------------------------------------------------------------------------------
-                                                                   *M.restore()*
-                                 `M.restore`()
+                                                                *pint.restore()*
+                                `pint.restore`()
 Disable every Pint module and release the state Pint owns.
 
 ------------------------------------------------------------------------------
-                                                                     *M.setup()*
-                               `M.setup`({opts})
+                                                                  *pint.setup()*
+                              `pint.setup`({opts})
 Configure and enable the plugin's modules.
 
 Pass `false` for any module to disable it.
@@ -123,18 +123,18 @@ Fields ~
 {hidden} `(optional)` `(boolean)`
 
 ------------------------------------------------------------------------------
-                                                                      *M.open()*
-                                   `M.open`()
+                                                         *pint.dashboard.open()*
+                            `pint.dashboard.open`()
 Open the dashboard in the current window.
 
 ------------------------------------------------------------------------------
-                                                                   *M.restore()*
-                                 `M.restore`()
+                                                      *pint.dashboard.restore()*
+                           `pint.dashboard.restore`()
 Disable dashboard autostart and close active dashboard buffers.
 
 ------------------------------------------------------------------------------
-                                                                     *M.setup()*
-                               `M.setup`({opts})
+                                                        *pint.dashboard.setup()*
+                         `pint.dashboard.setup`({opts})
 Configure the dashboard and open it on argument-less startup.
 Parameters ~
 {opts} `(optional)` `(pint.dashboard.Config)`
@@ -176,14 +176,14 @@ Fields ~
 {animation_timer} `(optional)` `(uv.uv_timer_t)`
 
 ------------------------------------------------------------------------------
-                                                                   *M.dismiss()*
-                               `M.dismiss`({id})
+                                                       *pint.notifier.dismiss()*
+                         `pint.notifier.dismiss`({id})
 Parameters ~
 {id} `(optional)` `(string|integer)`
 
 ------------------------------------------------------------------------------
-                                                                    *M.notify()*
-                       `M.notify`({msg}, {level}, {opts})
+                                                        *pint.notifier.notify()*
+                 `pint.notifier.notify`({msg}, {level}, {opts})
 Show a notification. Signature matches |vim.notify()|.
 Parameters ~
 {msg} `(string)`
@@ -191,18 +191,18 @@ Parameters ~
 {opts} `(optional)` `({title?:string, icon?:string, id?:string|integer, timeout?:integer})`
 
 ------------------------------------------------------------------------------
-                                                              *M.show_history()*
-                               `M.show_history`()
+                                                  *pint.notifier.show_history()*
+                         `pint.notifier.show_history`()
 Show notification history in a floating window.
 
 ------------------------------------------------------------------------------
-                                                                   *M.restore()*
-                                 `M.restore`()
+                                                       *pint.notifier.restore()*
+                           `pint.notifier.restore`()
 Restore the previous |vim.notify()| handler and close Pint notifications.
 
 ------------------------------------------------------------------------------
-                                                                     *M.setup()*
-                               `M.setup`({opts})
+                                                         *pint.notifier.setup()*
+                         `pint.notifier.setup`({opts})
 Install Pint as the |vim.notify()| handler.
 Parameters ~
 {opts} `(optional)` `(pint.notifier.Config)`
@@ -235,20 +235,20 @@ Fields ~
 {separator} `(optional)` `(string)` Text between line number and right slot. Default: " "
 
 ------------------------------------------------------------------------------
-                                                                       *M.get()*
-                                   `M.get`()
+                                                       *pint.statuscolumn.get()*
+                           `pint.statuscolumn.get`()
 Render the statuscolumn for the current window.
 Return ~
 `(string)`
 
 ------------------------------------------------------------------------------
-                                                                   *M.restore()*
-                                 `M.restore`()
+                                                   *pint.statuscolumn.restore()*
+                         `pint.statuscolumn.restore`()
 Restore the previous global statuscolumn when Pint still owns it.
 
 ------------------------------------------------------------------------------
-                                                                     *M.setup()*
-                               `M.setup`({opts})
+                                                     *pint.statuscolumn.setup()*
+                       `pint.statuscolumn.setup`({opts})
 Set 'statuscolumn' globally and keep the sign cache fresh.
 Parameters ~
 {opts} `(optional)` `(pint.statuscolumn.Config)`
@@ -275,27 +275,27 @@ Fields ~
 {exclude_filetypes} `(optional)` `(string[])` Filetypes to skip
 
 ------------------------------------------------------------------------------
-                                                                *M.textobject()*
-                            `M.textobject`({outer})
+                                                      *pint.indent.textobject()*
+                       `pint.indent.textobject`({outer})
 Select or operate on the current indent scope.
 Parameters ~
 {outer} `(boolean)` Include the line above and trailing line for `ai`
 
 ------------------------------------------------------------------------------
-                                                                      *M.jump()*
-                               `M.jump`({bottom})
+                                                            *pint.indent.jump()*
+                          `pint.indent.jump`({bottom})
 Jump to the top or bottom edge of the current indent scope.
 Parameters ~
 {bottom} `(boolean)` Jump to the bottom edge instead of the top
 
 ------------------------------------------------------------------------------
-                                                                   *M.restore()*
-                                 `M.restore`()
+                                                         *pint.indent.restore()*
+                            `pint.indent.restore`()
 Disable indent guides and restore mappings Pint still owns.
 
 ------------------------------------------------------------------------------
-                                                                     *M.setup()*
-                               `M.setup`({opts})
+                                                           *pint.indent.setup()*
+                          `pint.indent.setup`({opts})
 Enable indent guides.
 Parameters ~
 {opts} `(optional)` `(pint.indent.Config)`
@@ -335,38 +335,38 @@ Fields ~
 {client_id} `(optional)` `(integer)`
 
 ------------------------------------------------------------------------------
-                                                                *M.is_enabled()*
-                                `M.is_enabled`()
+                                                       *pint.words.is_enabled()*
+                           `pint.words.is_enabled`()
 Is the words module currently enabled?
 Return ~
 `(boolean)`
 
 ------------------------------------------------------------------------------
-                                                                    *M.enable()*
-                                  `M.enable`()
+                                                           *pint.words.enable()*
+                             `pint.words.enable`()
 Enable reference highlighting.
 
 ------------------------------------------------------------------------------
-                                                                   *M.disable()*
-                                 `M.disable`()
+                                                          *pint.words.disable()*
+                             `pint.words.disable`()
 Disable reference highlighting and clear tracked references.
 
 ------------------------------------------------------------------------------
-                                                                      *M.jump()*
-                           `M.jump`({count}, {cycle})
+                                                             *pint.words.jump()*
+                      `pint.words.jump`({count}, {cycle})
 Jump to a reference of the symbol under the cursor.
 Parameters ~
 {count} `(integer)` 1 for next, -1 for previous
 {cycle} `(optional)` `(boolean)` Wrap around at the ends. Default: true
 
 ------------------------------------------------------------------------------
-                                                                   *M.restore()*
-                                 `M.restore`()
+                                                          *pint.words.restore()*
+                             `pint.words.restore`()
 Disable automatic highlighting and release all tracked state.
 
 ------------------------------------------------------------------------------
-                                                                     *M.setup()*
-                               `M.setup`({opts})
+                                                            *pint.words.setup()*
+                           `pint.words.setup`({opts})
 Set up autocmds for automatic reference highlighting.
 Parameters ~
 {opts} `(optional)` `(pint.words.Config)`
@@ -400,35 +400,35 @@ Fields ~
 {override} `(optional)` `(boolean)` Replace an existing global mapping. Default: false
 
 ------------------------------------------------------------------------------
-                                                                *M.is_enabled()*
-                                `M.is_enabled`()
+                                                      *pint.scroll.is_enabled()*
+                           `pint.scroll.is_enabled`()
 Is smooth scrolling currently installed?
 Return ~
 `(boolean)`
 
 ------------------------------------------------------------------------------
-                                                                    *M.enable()*
-                                  `M.enable`()
+                                                          *pint.scroll.enable()*
+                             `pint.scroll.enable`()
 Enable smooth scrolling and install its mappings.
 
 ------------------------------------------------------------------------------
-                                                                   *M.disable()*
-                                 `M.disable`()
+                                                         *pint.scroll.disable()*
+                            `pint.scroll.disable`()
 Disable smooth scrolling, finish any in-flight motion, and restore mappings.
 
 ------------------------------------------------------------------------------
-                                                                    *M.toggle()*
-                                  `M.toggle`()
+                                                          *pint.scroll.toggle()*
+                             `pint.scroll.toggle`()
 Toggle smooth scrolling.
 
 ------------------------------------------------------------------------------
-                                                                   *M.restore()*
-                                 `M.restore`()
+                                                         *pint.scroll.restore()*
+                            `pint.scroll.restore`()
 Disable smooth scrolling and release timers, mappings, and window options.
 
 ------------------------------------------------------------------------------
-                                                                     *M.setup()*
-                               `M.setup`({opts})
+                                                           *pint.scroll.setup()*
+                          `pint.scroll.setup`({opts})
 Configure smooth scrolling.
 
 Mappings are installed only when `enabled` is true. An existing global
@@ -438,8 +438,8 @@ Parameters ~
 {opts} `(optional)` `(pint.scroll.Config)`
 
 ------------------------------------------------------------------------------
-                                                                    *M.scroll()*
-                           `M.scroll`({lhs}, {opts})
+                                                          *pint.scroll.scroll()*
+                      `pint.scroll.scroll`({lhs}, {opts})
 Run a scroll command, animating when it is safe.
 
 `lhs` is `<C-d>`, `<C-u>`, `<C-f>`, `<C-b>`, `zz`, `zt`, or `zb`.
